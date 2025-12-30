@@ -1,0 +1,14 @@
+{
+  "clangd.arguments": [
+    "-log=verbose",
+    "-pretty",
+    "--background-index",
+    "--compile-commands-dir=${workspaceFolder}/firmware/build",
+    "--query-driver=**"
+  ],
+  "editor.formatOnSave": true,
+  "clang-format.style": "file",
+  "cSpell.words": [
+    "eabi"
+  ],
+}

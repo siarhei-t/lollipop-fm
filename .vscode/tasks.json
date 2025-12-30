@@ -1,0 +1,27 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "type": "shell",
+            "label": "BUILD",
+            "command": "cmake --build build",
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "options": {
+                "cwd": "${workspaceFolder}/firmware"
+            },
+            "problemMatcher": []
+        },
+        {
+            "type": "shell",
+            "label": "CONFIGURE",
+            "command": "cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=1 -Bbuild",
+            "options": {
+                "cwd": "${workspaceFolder}/firmware"
+            },
+            "problemMatcher": []
+        },
+    ]
+}
