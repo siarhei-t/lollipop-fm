@@ -21,6 +21,22 @@ enable_language(C CXX ASM)
 project(${CMAKE_PROJECT_NAME})
 message("Build type: " ${CMAKE_BUILD_TYPE})
 
+
+set(FREERTOS_KERNEL_PATH "modules/freertos")
+add_library(freertos_config INTERFACE)
+target_include_directories(freertos_config
+    INTERFACE
+    "inc"
+)
+# Select the heap port.  values between 1-4 will pick a heap.
+set(FREERTOS_HEAP "4" CACHE STRING "" FORCE)
+
+# Select the native compile PORT
+set(FREERTOS_PORT "GCC_ARM_CM0" CACHE STRING "" FORCE)
+
+# Adding the FreeRTOS-Kernel subdirectory
+add_subdirectory(${FREERTOS_KERNEL_PATH} FreeRTOS-Kernel)
+
 # Create an executable object type
 add_executable(${CMAKE_PROJECT_NAME})
 
@@ -39,6 +55,8 @@ target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
 # Add linked libraries
 target_link_libraries(${CMAKE_PROJECT_NAME}
     stm32c011
+    freertos_kernel
+    freertos_config
 )
 
 # linker script
