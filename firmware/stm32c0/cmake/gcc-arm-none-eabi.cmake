@@ -44,4 +44,4 @@ set(CMAKE_CXX_FLAGS "${COMMON_FLAGS} -fno-rtti -fno-exceptions")
 set(CMAKE_C_FLAGS_DEBUG   "-O0 -g3")
 set(CMAKE_C_FLAGS_RELEASE "-Os -g0")
 
-set(CMAKE_EXE_LINKER_FLAGS "${MCU_FLAGS} --specs=nano.specs -Wl,--gc-sections -Wl,--print-memory-usage -lc -lm -lnosys")
+set(CMAKE_EXE_LINKER_FLAGS "${MCU_FLAGS} --specs=nano.specs -Wl,--gc-sections -Wl,--print-memory-usage -lc -lm ")

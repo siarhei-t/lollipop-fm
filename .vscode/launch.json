@@ -1,0 +1,17 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "DEBUG_STM32C0",
+            "device": "STM32C011F6",
+            "cwd": "${workspaceFolder}",
+            "executable": "${workspaceFolder}/firmware/build/lollipop-fm.elf",
+            "request": "launch",
+            "type": "cortex-debug",
+            "runToEntryPoint": "main",
+            "servertype": "jlink",
+            "gdbPath": "/Applications/ArmGNUToolchain/15.2.rel1/arm-none-eabi/bin/arm-none-eabi-gdb",
+            "svdFile": "${workspaceFolder}/firmware/stm32c0/STM32C011.svd"
+        }
+    ]
+}

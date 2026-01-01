@@ -6,7 +6,7 @@ if(NOT CMAKE_BUILD_TYPE)
 endif()
 
 # Set the project name
-set(CMAKE_PROJECT_NAME lollipop-fm)
+set(CMAKE_PROJECT_NAME lollipop-fm.elf)
 
 # Include toolchain file
 include("stm32c0/cmake/gcc-arm-none-eabi.cmake")
@@ -14,13 +14,13 @@ include("stm32c0/cmake/gcc-arm-none-eabi.cmake")
 # Enable compile command to ease indexing with e.g. clangd
 set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
 
+# Core project settings
+project(${CMAKE_PROJECT_NAME})
+
 # Enable CMake support for ASM and C languages
 enable_language(C CXX ASM)
 
-# Core project settings
-project(${CMAKE_PROJECT_NAME})
 message("Build type: " ${CMAKE_BUILD_TYPE})
-
 
 set(FREERTOS_KERNEL_PATH "modules/freertos")
 add_library(freertos_config INTERFACE)
@@ -28,6 +28,7 @@ target_include_directories(freertos_config
     INTERFACE
     "inc"
 )
+
 # Select the heap port.  values between 1-4 will pick a heap.
 set(FREERTOS_HEAP "4" CACHE STRING "" FORCE)
 
@@ -37,13 +38,14 @@ set(FREERTOS_PORT "GCC_ARM_CM0" CACHE STRING "" FORCE)
 # Adding the FreeRTOS-Kernel subdirectory
 add_subdirectory(${FREERTOS_KERNEL_PATH} FreeRTOS-Kernel)
 
-# Create an executable object type
-add_executable(${CMAKE_PROJECT_NAME})
-
 # Add STM32C0 startup and system init
 add_subdirectory(stm32c0)
 
+# Create an executable object type
+add_executable(${CMAKE_PROJECT_NAME})
+
 target_sources(${CMAKE_PROJECT_NAME} PRIVATE
+    src/syscalls.c
     src/main.c
 )
 

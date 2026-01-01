@@ -9,6 +9,7 @@
   "editor.formatOnSave": true,
   "clang-format.style": "file",
   "cSpell.words": [
-    "eabi"
+    "eabi",
+    "syscalls"
   ],
 }
