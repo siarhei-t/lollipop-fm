@@ -46,7 +46,7 @@ add_executable(${CMAKE_PROJECT_NAME})
 
 target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     src/syscalls.c
-    src/main.c
+    src/main.cpp
 )
 
 # Add include paths

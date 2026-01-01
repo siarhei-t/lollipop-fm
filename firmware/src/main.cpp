@@ -1,5 +1,5 @@
 /**
- * @file main.c
+ * @file main.cpp
  *
  * @brief tbd
  *
@@ -8,13 +8,25 @@
 
 /* Includes ----------------------------------------------------------------- */
 
+#include <cstdint>
+
 /* Public functions --------------------------------------------------------- */
+
+class App
+{
+public:
+    void run()
+    {
+        for (;;)
+        {
+        }
+    }
+};
 
 int main(void)
 {
-    for (;;)
-    {
-    }
+    static App app;
+    app.run();
 }
 
 /* ------------------------------ end of file ------------------------------- */
