@@ -8,25 +8,21 @@
 
 /* Includes ----------------------------------------------------------------- */
 
-#include <cstdint>
+#include "FreeRTOS.h"
+#include "led.hpp"
+#include "system_stm32c0xx.h"
+#include "task.h"
 
 /* Public functions --------------------------------------------------------- */
 
-class App
-{
-public:
-    void run()
-    {
-        for (;;)
-        {
-        }
-    }
-};
-
 int main(void)
 {
-    static App app;
-    app.run();
+    LedControl& led_control = LedControl::instance();
+    led_control.start();
+    vTaskStartScheduler();
+    for (;;)
+    {
+    }
 }
 
 /* ------------------------------ end of file ------------------------------- */
