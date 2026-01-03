@@ -9,6 +9,9 @@
 #include "led.hpp"
 #include <stm32c011xx.h>
 
+namespace led
+{
+
 LedControl& LedControl::instance()
 {
     static LedControl l;
@@ -116,8 +119,30 @@ void LedControl::ledTask(void* pvParameters)
 
     for (;;)
     {
-        instance().toggle(Leds::led_yellow);
-        vTaskDelay(pdMS_TO_TICKS(1000));
+        switch (instance().blink_mode)
+        {
+            case Blink::green:
+                instance().disable(Leds::led_yellow);
+                instance().toggle(Leds::led_green);
+                vTaskDelay(pdMS_TO_TICKS(100));
+                break;
+            case Blink::yellow:
+                instance().disable(Leds::led_green);
+                instance().toggle(Leds::led_yellow);
+                vTaskDelay(pdMS_TO_TICKS(100));
+                break;
+            case Blink::both:
+                instance().toggle(Leds::led_yellow);
+                instance().toggle(Leds::led_green);
+                vTaskDelay(pdMS_TO_TICKS(100));
+                break;
+            case Blink::off:
+            default:
+                instance().disable(Leds::led_green);
+                instance().disable(Leds::led_yellow);
+                vTaskDelay(pdMS_TO_TICKS(50));
+                break;
+        }
     }
 }
 
@@ -125,5 +150,7 @@ void LedControl::start()
 {
     task_handle = xTaskCreateStatic(&LedControl::ledTask, "led control", led::stack_size, nullptr, led::task_priority, stack, &task_buffer);
 }
+
+} // namespace led
 
 /* ------------------------------ end of file ------------------------------- */

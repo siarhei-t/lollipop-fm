@@ -16,7 +16,8 @@
 
 int main(void)
 {
-    LedControl& led_control = LedControl::instance();
+    led::LedControl& led_control = led::LedControl::instance();
+    // led_control.setBlinkMode(led::Blink::yellow);
     led_control.start();
     vTaskStartScheduler();
     for (;;)
