@@ -30,7 +30,7 @@ target_include_directories(freertos_config
 )
 
 # Select the heap port.  values between 1-4 will pick a heap.
-set(FREERTOS_HEAP "4" CACHE STRING "" FORCE)
+set(FREERTOS_HEAP "1" CACHE STRING "" FORCE)
 
 # Select the native compile PORT
 set(FREERTOS_PORT "GCC_ARM_CM0" CACHE STRING "" FORCE)

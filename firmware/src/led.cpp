@@ -7,9 +7,6 @@
  */
 
 #include "led.hpp"
-#include "FreeRTOS.h"
-#include "FreeRTOSConfig.h"
-#include "task.h"
 #include <stm32c011xx.h>
 
 LedControl& LedControl::instance()
@@ -40,6 +37,11 @@ void LedControl::enable(const Leds led)
         case Leds::led_yellow:
             GPIOA->BSRR |= GPIO_BSRR_BR6;
             break;
+        case Leds::all_leds:
+        default:
+            GPIOA->BSRR |= GPIO_BSRR_BR5;
+            GPIOA->BSRR |= GPIO_BSRR_BR6;
+            break;
     }
 }
 
@@ -53,6 +55,11 @@ void LedControl::disable(const Leds led)
         case Leds::led_yellow:
             GPIOA->BSRR |= GPIO_BSRR_BS6;
             break;
+        case Leds::all_leds:
+        default:
+            GPIOA->BSRR |= GPIO_BSRR_BS5;
+            GPIOA->BSRR |= GPIO_BSRR_BS6;
+            break;
     }
 }
 
@@ -62,16 +69,43 @@ void LedControl::toggle(const Leds led)
     {
         case Leds::led_green:
             if (GPIOA->ODR & GPIO_ODR_OD5)
+            {
                 GPIOA->BSRR = GPIO_BSRR_BR5;
+            }
             else
+            {
                 GPIOA->BSRR = GPIO_BSRR_BS5;
+            }
             break;
 
         case Leds::led_yellow:
             if (GPIOA->ODR & GPIO_ODR_OD6)
+            {
                 GPIOA->BSRR = GPIO_BSRR_BR6;
+            }
             else
+            {
                 GPIOA->BSRR = GPIO_BSRR_BS6;
+            }
+            break;
+        case Leds::all_leds:
+        default:
+            if (GPIOA->ODR & GPIO_ODR_OD5)
+            {
+                GPIOA->BSRR = GPIO_BSRR_BR5;
+            }
+            else
+            {
+                GPIOA->BSRR = GPIO_BSRR_BS5;
+            }
+            if (GPIOA->ODR & GPIO_ODR_OD6)
+            {
+                GPIOA->BSRR = GPIO_BSRR_BR6;
+            }
+            else
+            {
+                GPIOA->BSRR = GPIO_BSRR_BS6;
+            }
             break;
     }
 }
@@ -87,6 +121,9 @@ void LedControl::ledTask(void* pvParameters)
     }
 }
 
-void LedControl::start() { xTaskCreate(&LedControl::ledTask, "LED_BLINK", configMINIMAL_STACK_SIZE, nullptr, tskIDLE_PRIORITY + 1, nullptr); }
+void LedControl::start()
+{
+    task_handle = xTaskCreateStatic(&LedControl::ledTask, "led control", led::stack_size, nullptr, led::task_priority, stack, &task_buffer);
+}
 
 /* ------------------------------ end of file ------------------------------- */

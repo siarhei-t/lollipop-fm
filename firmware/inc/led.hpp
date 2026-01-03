@@ -8,11 +8,21 @@
 #ifndef LED_H
 #define LED_H
 
+#include "FreeRTOS.h"
+#include "task.h"
+
+namespace led
+{
+constexpr int stack_size = 32;
+constexpr int task_priority = configMAX_PRIORITIES - 3;
+} // namespace led
+
 /**
  * @brief Enum for available LEDs on the board.
  */
 enum class Leds
 {
+    all_leds,  ///< all leds
     led_green, ///< Green LED
     led_yellow ///< Yellow LED
 };
@@ -75,6 +85,10 @@ private:
 
     /// Deleted copy assignment operator to prevent copying.
     LedControl& operator=(const LedControl&) = delete;
+
+    StackType_t stack[led::stack_size];
+    StaticTask_t task_buffer;
+    TaskHandle_t task_handle = nullptr;
 };
 
 #endif // LED_H
