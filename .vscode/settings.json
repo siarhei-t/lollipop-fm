@@ -9,6 +9,7 @@
   "editor.formatOnSave": true,
   "clang-format.style": "file",
   "cSpell.words": [
+    "AFRH",
     "AFRL",
     "AFSEL",
     "AHBENR",
@@ -16,6 +17,7 @@
     "BSRR",
     "CCER",
     "CCMR",
+    "CFGR",
     "CMAR",
     "CNDTR",
     "CPAR",
@@ -30,10 +32,14 @@
     "MINC",
     "MODER",
     "NVIC",
+    "OSPEEDR",
     "PUPD",
     "PUPDR",
     "syscalls",
+    "SYSCFGEN",
     "TCIE",
-    "TCIF"
+    "TCIF",
+    "TXFNF",
+    "USART"
   ],
 }

@@ -10,6 +10,7 @@
 
 #include "FreeRTOS.h"
 #include "led.hpp"
+#include "serial.hpp"
 #include "task.h"
 
 /* Public functions --------------------------------------------------------- */
@@ -17,8 +18,11 @@
 int main(void)
 {
     led::LedControl& led_control = led::LedControl::instance();
-    // led_control.setBlinkMode(led::Blink::yellow);
+    serial::Serial& serial_port = serial::Serial::instance();
+
+    led_control.setBlinkMode(led::Blink::yellow);
     led_control.start();
+    serial_port.print("Test message...\n");
     vTaskStartScheduler();
     for (;;)
     {

@@ -29,7 +29,6 @@ FrequencyMeter::FrequencyMeter()
     GPIOA->MODER |= GPIO_MODER_MODE3_1;
     GPIOA->AFR[0] &= ~GPIO_AFRL_AFSEL3_Msk;
     GPIOA->AFR[0] |= (5U << GPIO_AFRL_AFSEL3_Pos);
-
     // TIM1 CH4 input capture
     TIM1->PSC = 0;
     TIM1->ARR = counter_top_value;
@@ -42,9 +41,7 @@ FrequencyMeter::FrequencyMeter()
     DMA1_Channel1->CPAR = (uint32_t)&TIM1->CCR4;
     DMA1_Channel1->CMAR = (uint32_t)buffer;
     DMA1_Channel1->CNDTR = timer_num_of_samples;
-
     DMA1_Channel1->CCR = DMA_CCR_MSIZE_1 | DMA_CCR_PSIZE_1 | DMA_CCR_CIRC | DMA_CCR_TCIE | DMA_CCR_MINC;
-
     NVIC_EnableIRQ(DMA1_Channel1_IRQn);
 }
 

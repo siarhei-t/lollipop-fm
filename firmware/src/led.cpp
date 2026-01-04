@@ -22,8 +22,8 @@ LedControl::LedControl()
 {
     RCC->IOPENR |= RCC_IOPENR_GPIOAEN;
     // GREEN led at PA5 and YELLOW led at PA6
-    GPIOA->MODER &= ~GPIO_MODER_MODE5_Msk;
-    GPIOA->MODER &= ~GPIO_MODER_MODE6_Msk;
+    GPIOA->MODER &= ~GPIO_MODER_MODE5;
+    GPIOA->MODER &= ~GPIO_MODER_MODE6;
     // outputs, no pullup/pulldown, low speed
     GPIOA->MODER |= (GPIO_MODER_MODE5_0 | GPIO_MODER_MODE6_0);
     disable(Leds::led_green);
