@@ -47,6 +47,7 @@ add_executable(${CMAKE_PROJECT_NAME})
 target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     src/syscalls.c
     src/main.cpp
+    src/app.cpp
     src/led.cpp
     src/serial.cpp
     src/frequency_meter.cpp

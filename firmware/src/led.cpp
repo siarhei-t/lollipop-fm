@@ -26,21 +26,42 @@ LedControl::LedControl()
     GPIOA->MODER &= ~GPIO_MODER_MODE6;
     // outputs, no pullup/pulldown, low speed
     GPIOA->MODER |= (GPIO_MODER_MODE5_0 | GPIO_MODER_MODE6_0);
-    disable(Leds::led_green);
-    disable(Leds::led_yellow);
+    disable(Leds::green);
+    disable(Leds::yellow);
+}
+
+void LedControl::setBlinkMode(const Blink mode, const bool yellow, const bool green)
+{
+    if (yellow)
+    {
+        enable(Leds::yellow);
+    }
+    else
+    {
+        disable(Leds::yellow);
+    }
+    if (green)
+    {
+        enable(Leds::green);
+    }
+    else
+    {
+        disable(Leds::green);
+    }
+    blink_mode = mode;
 }
 
 void LedControl::enable(const Leds led)
 {
     switch (led)
     {
-        case Leds::led_green:
+        case Leds::green:
             GPIOA->BSRR |= GPIO_BSRR_BR5;
             break;
-        case Leds::led_yellow:
+        case Leds::yellow:
             GPIOA->BSRR |= GPIO_BSRR_BR6;
             break;
-        case Leds::all_leds:
+        case Leds::all:
         default:
             GPIOA->BSRR |= GPIO_BSRR_BR5;
             GPIOA->BSRR |= GPIO_BSRR_BR6;
@@ -52,13 +73,13 @@ void LedControl::disable(const Leds led)
 {
     switch (led)
     {
-        case Leds::led_green:
+        case Leds::green:
             GPIOA->BSRR |= GPIO_BSRR_BS5;
             break;
-        case Leds::led_yellow:
+        case Leds::yellow:
             GPIOA->BSRR |= GPIO_BSRR_BS6;
             break;
-        case Leds::all_leds:
+        case Leds::all:
         default:
             GPIOA->BSRR |= GPIO_BSRR_BS5;
             GPIOA->BSRR |= GPIO_BSRR_BS6;
@@ -70,7 +91,7 @@ void LedControl::toggle(const Leds led)
 {
     switch (led)
     {
-        case Leds::led_green:
+        case Leds::green:
             if (GPIOA->ODR & GPIO_ODR_OD5)
             {
                 GPIOA->BSRR = GPIO_BSRR_BR5;
@@ -81,7 +102,7 @@ void LedControl::toggle(const Leds led)
             }
             break;
 
-        case Leds::led_yellow:
+        case Leds::yellow:
             if (GPIOA->ODR & GPIO_ODR_OD6)
             {
                 GPIOA->BSRR = GPIO_BSRR_BR6;
@@ -91,7 +112,7 @@ void LedControl::toggle(const Leds led)
                 GPIOA->BSRR = GPIO_BSRR_BS6;
             }
             break;
-        case Leds::all_leds:
+        case Leds::all:
         default:
             if (GPIOA->ODR & GPIO_ODR_OD5)
             {
@@ -122,34 +143,31 @@ void LedControl::ledTask(void* pvParameters)
         switch (instance().blink_mode)
         {
             case Blink::green:
-                instance().disable(Leds::led_yellow);
-                instance().toggle(Leds::led_green);
+                instance().disable(Leds::yellow);
+                instance().toggle(Leds::green);
                 vTaskDelay(pdMS_TO_TICKS(100));
                 break;
             case Blink::yellow:
-                instance().disable(Leds::led_green);
-                instance().toggle(Leds::led_yellow);
+                instance().disable(Leds::green);
+                instance().toggle(Leds::yellow);
                 vTaskDelay(pdMS_TO_TICKS(100));
                 break;
             case Blink::both:
-                instance().toggle(Leds::led_yellow);
-                instance().toggle(Leds::led_green);
+                instance().toggle(Leds::yellow);
+                instance().toggle(Leds::green);
                 vTaskDelay(pdMS_TO_TICKS(100));
                 break;
             case Blink::off:
             default:
-                instance().disable(Leds::led_green);
-                instance().disable(Leds::led_yellow);
+                instance().disable(Leds::green);
+                instance().disable(Leds::yellow);
                 vTaskDelay(pdMS_TO_TICKS(50));
                 break;
         }
     }
 }
 
-void LedControl::start()
-{
-    task_handle = xTaskCreateStatic(&LedControl::ledTask, "led control", led::stack_size, nullptr, led::task_priority, stack, &task_buffer);
-}
+void LedControl::init() { task_handle = xTaskCreateStatic(&LedControl::ledTask, "led control", stack_size, nullptr, task_priority, stack, &task_buffer); }
 
 } // namespace led
 

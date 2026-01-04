@@ -8,6 +8,9 @@
 #include "frequency_meter.hpp"
 #include <stm32c011xx.h>
 
+namespace fm
+{
+
 // ID from rm0490 form DMAMUX config
 constexpr std::uint32_t tim1_channel4_id = 23;
 // top value for TIM ARR register
@@ -73,4 +76,6 @@ void FrequencyMeter::irq(void)
     }
 }
 
-extern "C" void DMA1_Channel1_IRQHandler(void) { FrequencyMeter::instance().irq(); }
+} // namespace fm
+
+extern "C" void DMA1_Channel1_IRQHandler(void) { fm::FrequencyMeter::instance().irq(); }

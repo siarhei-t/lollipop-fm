@@ -8,22 +8,16 @@
 
 /* Includes ----------------------------------------------------------------- */
 
-#include "FreeRTOS.h"
-#include "led.hpp"
-#include "serial.hpp"
-#include "task.h"
+#include "app.hpp"
 
 /* Public functions --------------------------------------------------------- */
 
 int main(void)
 {
-    led::LedControl& led_control = led::LedControl::instance();
-    serial::Serial& serial_port = serial::Serial::instance();
-
-    led_control.setBlinkMode(led::Blink::yellow);
-    led_control.start();
-    serial_port.print("Test message...\n");
+    app::Application& app = app::Application::instance();
+    app.start();
     vTaskStartScheduler();
+    // normally unreachable
     for (;;)
     {
     }

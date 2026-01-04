@@ -9,6 +9,8 @@
 #define FREQUENCY_METER_H
 
 #include <cstdint>
+namespace fm
+{
 
 constexpr std::uint32_t timer_num_of_samples = 2;
 
@@ -82,4 +84,5 @@ private:
     volatile std::uint32_t result = 0;
 };
 
+} // namespace fm
 #endif // FREQUENCY_METER_H

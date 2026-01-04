@@ -9,6 +9,8 @@
 /* Includes ----------------------------------------------------------------- */
 
 #include "serial.hpp"
+#include "FreeRTOS.h"
+#include "task.h"
 #include <cstdarg>
 #include <cstdint>
 #include <cstdio>
@@ -25,6 +27,7 @@ Serial& Serial::instance()
     static Serial s;
     return s;
 }
+
 Serial::Serial()
 {
     RCC->IOPENR |= RCC_IOPENR_GPIOAEN;
@@ -74,7 +77,9 @@ void Serial::send(const char* p_buf, const int size)
 void Serial::putchar(const char c)
 {
     while (!(USART1->ISR & USART_ISR_TXE_TXFNF))
-        ;
+    {
+        taskYIELD();
+    }
     USART1->TDR = c;
 }
 

@@ -26,9 +26,9 @@ constexpr int task_priority = configMAX_PRIORITIES - 3;
  */
 enum class Leds
 {
-    all_leds,  ///< All LEDs
-    led_green, ///< Green LED
-    led_yellow ///< Yellow LED
+    all,   ///< All LEDs
+    green, ///< Green LED
+    yellow ///< Yellow LED
 };
 
 /**
@@ -68,7 +68,7 @@ public:
     static LedControl& instance();
 
     /**
-     * @brief Start the LED control task.
+     * @brief Create the LED control task.
      *
      * Creates and starts a statically allocated FreeRTOS task
      * responsible for LED blinking according to the selected mode.
@@ -76,7 +76,7 @@ public:
      * This function should be called once during system initialization,
      * after the scheduler is ready to run.
      */
-    void start();
+    void init();
 
     /**
      * @brief Set the current LED blinking mode.
@@ -85,7 +85,7 @@ public:
      *
      * @param mode Desired blinking mode.
      */
-    void setBlinkMode(const Blink mode) { blink_mode = mode; }
+    void setBlinkMode(const Blink mode, const bool yellow = false, const bool green = false);
 
     /**
      * @brief FreeRTOS task entry function for LED control.
@@ -140,7 +140,7 @@ private:
     Blink blink_mode = Blink::off;
 
     /// Stack memory for the LED control task (static allocation).
-    StackType_t stack[led::stack_size];
+    StackType_t stack[stack_size];
 
     /// Static task control block for the LED control task.
     StaticTask_t task_buffer;
