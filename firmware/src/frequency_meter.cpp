@@ -31,6 +31,7 @@ FrequencyMeter::FrequencyMeter()
     // PB6, oscillator power control
     GPIOB->MODER &= ~GPIO_MODER_MODE6;
     GPIOB->MODER |= GPIO_MODER_MODE6_0;
+    GPIOB->BSRR = GPIO_BSRR_BR6;
     // PA3 AF5 TIM1_CH4
     GPIOA->MODER &= ~GPIO_MODER_MODE3;
     GPIOA->MODER |= GPIO_MODER_MODE3_1;
@@ -54,14 +55,12 @@ FrequencyMeter::FrequencyMeter()
 
 void FrequencyMeter::start()
 {
-    GPIOB->BSRR = GPIO_BSRR_BR6;
     DMA1_Channel1->CCR |= DMA_CCR_EN;
     TIM1->CR1 |= TIM_CR1_CEN;
 }
 
 void FrequencyMeter::stop()
 {
-    GPIOB->BSRR = GPIO_BSRR_BS6;
     TIM1->CR1 &= ~TIM_CR1_CEN;
     DMA1_Channel1->CCR &= ~DMA_CCR_EN;
 }

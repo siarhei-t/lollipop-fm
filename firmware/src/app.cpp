@@ -18,6 +18,7 @@ namespace app
 constexpr int log_period_ms = 2000;
 constexpr int update_rate_ms = 50;
 constexpr int num_of_samples_calibration = 20;
+constexpr int allowable_deviation = 1;
 constexpr int num_of_deviations = 2;
 constexpr int log_timeout = log_period_ms / update_rate_ms;
 
@@ -41,9 +42,11 @@ static uint32_t calibration()
 {
     uint32_t cap = 0;
     uint32_t reference = 0;
+    vTaskDelay(pdMS_TO_TICKS(1000));
     for (int i = 0; i < num_of_samples_calibration; ++i)
     {
         cap += fm.getValue();
+        sp.print("cap = %d\n", cap);
         vTaskDelay(pdMS_TO_TICKS(update_rate_ms));
     }
     reference = cap / num_of_samples_calibration;
@@ -86,7 +89,24 @@ void Application::appTask(void* pvParameters)
             sp.print("captured value : %d, deviation : %d \n", captured_value, deviation);
         }
         // logic for deviation
-
+        do
+        {
+            if (deviation > allowable_deviation)
+            {
+                ++deviation_counter;
+            }
+            else
+            {
+                deviation_counter = 0;
+                led_ctrl.setBlinkMode(led::Blink::off);
+                break;
+            }
+            if (deviation_counter > num_of_deviations)
+            {
+                // looks like we have something
+                led_ctrl.setBlinkMode(led::Blink::yellow);
+            }
+        } while (0);
         //
         vTaskDelay(pdMS_TO_TICKS(update_rate_ms));
     }
@@ -98,7 +118,6 @@ void Application::start()
     task_handle = xTaskCreateStatic(&Application::appTask, "application", stack_size, nullptr, task_priority, stack, &task_buffer);
     // create led task
     led_ctrl.init();
-    led_ctrl.setBlinkMode(led::Blink::yellow);
     // enable oscillator
     fm.start();
 }
