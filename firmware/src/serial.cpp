@@ -53,6 +53,7 @@ Serial::Serial()
 
 int Serial::print(const char* format, ...)
 {
+    taskENTER_CRITICAL();
     va_list args;
     va_start(args, format);
     int len = std::vsnprintf(buffer, sizeof(buffer), format, args);
@@ -61,6 +62,7 @@ int Serial::print(const char* format, ...)
     {
         send(buffer, len);
     }
+    taskEXIT_CRITICAL();
     return len;
 }
 

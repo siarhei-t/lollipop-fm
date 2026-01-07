@@ -52,4 +52,12 @@ void vApplicationGetTimerTaskMemory(StaticTask_t** ppxTimerTaskTCBBuffer, StackT
     *pulTimerTaskStackSize = configTIMER_TASK_STACK_DEPTH;
 }
 
+void vApplicationStackOverflowHook(TaskHandle_t, char*)
+{
+    taskDISABLE_INTERRUPTS();
+    while (1)
+    {
+    }
+}
+
 /* ------------------------------ end of file ------------------------------- */

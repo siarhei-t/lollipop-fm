@@ -29,7 +29,7 @@ constexpr int task_priority = configMAX_PRIORITIES - 2;
  * The value is chosen to be large enough to safely handle
  * operations such as formatted printing (e.g. vsnprintf).
  */
-constexpr int stack_size = 256;
+constexpr int stack_size = 512;
 
 /**
  * @brief Main application controller class.

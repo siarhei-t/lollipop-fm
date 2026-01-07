@@ -12,7 +12,7 @@
 namespace fm
 {
 
-constexpr std::uint32_t timer_num_of_samples = 2;
+constexpr std::uint32_t timer_num_of_samples = 4;
 
 /**
  * @brief Class to measure frequency using TIM1 and DMA on STM32C0.
@@ -78,7 +78,7 @@ private:
     FrequencyMeter& operator=(const FrequencyMeter&) = delete;
 
     /// Circular buffer storing captured timer values.
-    std::uint32_t buffer[timer_num_of_samples];
+    std::uint16_t buffer[timer_num_of_samples];
 
     /// Last measured value, updated by IRQ. Volatile because modified in ISR.
     volatile std::uint32_t result = 0;

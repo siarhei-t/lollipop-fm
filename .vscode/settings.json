@@ -28,6 +28,8 @@
     "eabi",
     "GPIOA",
     "GPIOAEN",
+    "GPIOB",
+    "GPIOBEN",
     "IOPENR",
     "MINC",
     "MODER",

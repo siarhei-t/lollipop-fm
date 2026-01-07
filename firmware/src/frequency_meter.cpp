@@ -26,11 +26,15 @@ FrequencyMeter::FrequencyMeter()
 {
     RCC->APBENR2 |= RCC_APBENR2_TIM1EN;
     RCC->IOPENR |= RCC_IOPENR_GPIOAEN;
+    RCC->IOPENR |= RCC_IOPENR_GPIOBEN;
     RCC->AHBENR |= RCC_AHBENR_DMA1EN;
+    // PB6, oscillator power control
+    GPIOB->MODER &= ~GPIO_MODER_MODE6;
+    GPIOB->MODER |= GPIO_MODER_MODE6_0;
     // PA3 AF5 TIM1_CH4
-    GPIOA->MODER &= ~GPIO_MODER_MODE3_Msk;
+    GPIOA->MODER &= ~GPIO_MODER_MODE3;
     GPIOA->MODER |= GPIO_MODER_MODE3_1;
-    GPIOA->AFR[0] &= ~GPIO_AFRL_AFSEL3_Msk;
+    GPIOA->AFR[0] &= ~GPIO_AFRL_AFSEL3;
     GPIOA->AFR[0] |= (5U << GPIO_AFRL_AFSEL3_Pos);
     // TIM1 CH4 input capture
     TIM1->PSC = 0;
@@ -44,18 +48,20 @@ FrequencyMeter::FrequencyMeter()
     DMA1_Channel1->CPAR = (uint32_t)&TIM1->CCR4;
     DMA1_Channel1->CMAR = (uint32_t)buffer;
     DMA1_Channel1->CNDTR = timer_num_of_samples;
-    DMA1_Channel1->CCR = DMA_CCR_MSIZE_1 | DMA_CCR_PSIZE_1 | DMA_CCR_CIRC | DMA_CCR_TCIE | DMA_CCR_MINC;
+    DMA1_Channel1->CCR = DMA_CCR_MSIZE_0 | DMA_CCR_PSIZE_0 | DMA_CCR_CIRC | DMA_CCR_TCIE | DMA_CCR_MINC;
     NVIC_EnableIRQ(DMA1_Channel1_IRQn);
 }
 
 void FrequencyMeter::start()
 {
+    GPIOB->BSRR = GPIO_BSRR_BR6;
     DMA1_Channel1->CCR |= DMA_CCR_EN;
     TIM1->CR1 |= TIM_CR1_CEN;
 }
 
 void FrequencyMeter::stop()
 {
+    GPIOB->BSRR = GPIO_BSRR_BS6;
     TIM1->CR1 &= ~TIM_CR1_CEN;
     DMA1_Channel1->CCR &= ~DMA_CCR_EN;
 }
@@ -65,13 +71,13 @@ void FrequencyMeter::irq(void)
     if (DMA1->ISR & DMA_ISR_TCIF1)
     {
         DMA1->IFCR = DMA_IFCR_CTCIF1;
-        if (buffer[1] >= buffer[0])
+        if (buffer[3] >= buffer[2])
         {
-            result = buffer[1] - buffer[0];
+            result = buffer[3] - buffer[2];
         }
         else
         {
-            result = (counter_top_value + 1) - buffer[0] + buffer[1];
+            result = (counter_top_value + 1) - buffer[2] + buffer[3];
         }
     }
 }

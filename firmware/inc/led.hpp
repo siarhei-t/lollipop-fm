@@ -15,7 +15,7 @@ namespace led
 {
 
 /// Stack size for LED control FreeRTOS task (in words, not bytes).
-constexpr int stack_size = 32;
+constexpr int stack_size = 64;
 
 /// Priority of LED control task.
 /// Chosen slightly below maximum to avoid starving critical system tasks.
