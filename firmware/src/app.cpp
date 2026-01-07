@@ -76,6 +76,7 @@ void Application::appTask(void* pvParameters)
             reference = calibration();
             calibrated = true;
             sp.print("calibration done!\n");
+            sp.print("reference = %d\n", reference);
         }
 
         captured_value = fm.getValue();

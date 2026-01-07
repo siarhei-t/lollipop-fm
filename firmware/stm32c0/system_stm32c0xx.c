@@ -149,30 +149,27 @@ void SystemInit(void)
 #else
     SCB->VTOR = FLASH_BASE | VECT_TAB_OFFSET; /* Vector Table Relocation in Internal FLASH */
 #endif
-    // Extra logic, enabling 8 MHz external oscillator
-    /* 1. Enable HSE */
+    RCC->CR &= ~RCC_CR_HSIDIV;
+    SystemCoreClock = 48000000;
+    /*
+      // Extra logic, enabling 8 MHz external oscillator
     RCC->CR |= RCC_CR_HSEON;
     while ((RCC->CR & RCC_CR_HSERDY) == 0)
     {
-        /* wait */
     }
 
-    /* 2. Set HSE as SYSCLK source */
     RCC->CFGR &= ~RCC_CFGR_SW_Msk;
     RCC->CFGR |= RCC_CFGR_SW_0;
 
-    /* 3. Wait until HSE is used as SYSCLK */
     while ((RCC->CFGR & RCC_CFGR_SWS_Msk) != RCC_CFGR_SWS_HSE)
     {
-        /* wait */
     }
 
-    /* 4. Set prescalers (optional, but explicit) */
     RCC->CFGR &= ~RCC_CFGR_HPRE_Msk; // AHB = SYSCLK / 1
     RCC->CFGR &= ~RCC_CFGR_PPRE_Msk; // APB = HCLK / 1
 
-    /* 5. Update SystemCoreClock */
     SystemCoreClock = 8000000;
+    */
 }
 
 /**
