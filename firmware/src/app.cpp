@@ -8,6 +8,7 @@
 
 #include "app.hpp"
 #include "frequency_meter.hpp"
+#include "io.hpp"
 #include "led.hpp"
 #include "serial.hpp"
 #include <cstdint>
@@ -15,16 +16,19 @@
 namespace app
 {
 
-constexpr int log_period_ms = 2000;
-constexpr int update_rate_ms = 50;
-constexpr int num_of_samples_calibration = 20;
-constexpr int allowable_deviation = 1;
-constexpr int num_of_deviations = 2;
-constexpr int log_timeout = log_period_ms / update_rate_ms;
+////////////////////////DETECTOR SETTINGS AND CONSTANTS/////////////////////////////
+constexpr int log_period_ms = 2000;                         // if project build with serial port support
+constexpr int update_rate_ms = 50;                          // the period at which the frequency meter is polled
+constexpr int num_of_samples_calibration = 20;              // the number of frequency meter measurements to obtain the average value during calibration
+constexpr int allowable_deviation = 1;                      // maximum permitted deviation in absolute values ​​of the timer counter
+constexpr int num_of_deviations = 2;                        // maximum number of consecutive deviations permitted
+constexpr int log_timeout = log_period_ms / update_rate_ms; // period for serial port output
+////////////////////////////////////////////////////////////////////////////////
 
 led::LedControl& led_ctrl = led::LedControl::instance();
 serial::Serial& sp = serial::Serial::instance();
 fm::FrequencyMeter& fm = fm::FrequencyMeter::instance();
+io::DevicePorts& io = io::DevicePorts::instance();
 
 static inline uint32_t local_fabs(const uint32_t a, const uint32_t b)
 {
@@ -38,7 +42,7 @@ static inline uint32_t local_fabs(const uint32_t a, const uint32_t b)
     }
 }
 
-static uint32_t calibration()
+static inline uint32_t calibration()
 {
     uint32_t cap = 0;
     uint32_t reference = 0;
@@ -57,6 +61,16 @@ Application& Application::instance()
 {
     static Application app;
     return app;
+}
+
+void Application::start()
+{
+    // create main task
+    task_handle = xTaskCreateStatic(&Application::appTask, "application", stack_size, nullptr, task_priority, stack, &task_buffer);
+    // create led task
+    led_ctrl.init();
+    // enable oscillator
+    fm.start();
 }
 
 void Application::appTask(void* pvParameters)
@@ -99,27 +113,29 @@ void Application::appTask(void* pvParameters)
             {
                 deviation_counter = 0;
                 led_ctrl.setBlinkMode(led::Blink::off);
+                // place for PWM sound off
                 break;
             }
             if (deviation_counter > num_of_deviations)
             {
                 // looks like we have something
-                led_ctrl.setBlinkMode(led::Blink::yellow);
+                if (captured_value < reference)
+                {
+                    // color metal
+                    led_ctrl.setBlinkMode(led::Blink::yellow);
+                    // place for PWM color metal sound call
+                }
+                else
+                {
+                    // black metal
+                    led_ctrl.setBlinkMode(led::Blink::yellow);
+                    // place for PWM black metal sound call
+                }
             }
         } while (0);
-        //
+
         vTaskDelay(pdMS_TO_TICKS(update_rate_ms));
     }
-}
-
-void Application::start()
-{
-    // create main task
-    task_handle = xTaskCreateStatic(&Application::appTask, "application", stack_size, nullptr, task_priority, stack, &task_buffer);
-    // create led task
-    led_ctrl.init();
-    // enable oscillator
-    fm.start();
 }
 
 } // namespace app

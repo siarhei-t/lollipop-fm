@@ -49,6 +49,7 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     src/main.cpp
     src/app.cpp
     src/led.cpp
+    src/io.cpp
     src/serial.cpp
     src/frequency_meter.cpp
 )
