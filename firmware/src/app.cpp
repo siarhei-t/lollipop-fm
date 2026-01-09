@@ -87,7 +87,7 @@ void Application::appTask(void* pvParameters)
     {
         ++tick_counter;
 
-        if (!calibrated)
+        if (!calibrated || io.checkButtonEvent())
         {
             sp.print("calibration...\n");
             reference = calibration();
@@ -101,10 +101,6 @@ void Application::appTask(void* pvParameters)
         if ((tick_counter % log_timeout) == 0)
         {
             sp.print("captured value : %d, deviation : %d \n", captured_value, deviation);
-            if (io.checkButtonEvent())
-            {
-                sp.print("BUTTON PRESSED! \n");
-            }
         }
         // logic for deviation
         do
