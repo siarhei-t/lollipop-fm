@@ -51,12 +51,14 @@ FrequencyMeter::FrequencyMeter()
 void FrequencyMeter::start()
 {
     DMA1_Channel1->CCR |= DMA_CCR_EN;
+    TIM1->CNT = 0;
     TIM1->CR1 |= TIM_CR1_CEN;
 }
 
 void FrequencyMeter::stop()
 {
     TIM1->CR1 &= ~TIM_CR1_CEN;
+    TIM1->CNT = 0;
     DMA1_Channel1->CCR &= ~DMA_CCR_EN;
 }
 

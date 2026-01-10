@@ -7,6 +7,7 @@
  */
 
 #include "app.hpp"
+#include "buzzer.hpp"
 #include "frequency_meter.hpp"
 #include "io.hpp"
 #include "led.hpp"
@@ -29,6 +30,7 @@ led::LedControl& led_ctrl = led::LedControl::instance();
 serial::Serial& sp = serial::Serial::instance();
 fm::FrequencyMeter& fm = fm::FrequencyMeter::instance();
 io::DevicePorts& io = io::DevicePorts::instance();
+bz::Buzzer& bz = bz::Buzzer::instance();
 
 static inline uint32_t local_fabs(const uint32_t a, const uint32_t b)
 {
@@ -66,7 +68,7 @@ Application& Application::instance()
 void Application::start()
 {
     // create main task
-    task_handle = xTaskCreateStatic(&Application::appTask, "application", stack_size, nullptr, task_priority, stack, &task_buffer);
+    task_handle = xTaskCreateStatic(&Application::appTask, "app", stack_size, nullptr, task_priority, stack, &task_buffer);
     // create led task
     led_ctrl.init();
     // enable oscillator
@@ -113,7 +115,8 @@ void Application::appTask(void* pvParameters)
             {
                 deviation_counter = 0;
                 led_ctrl.setBlinkMode(led::Blink::off);
-                // place for PWM sound off
+                bz.stop();
+                //  place for PWM sound off
                 break;
             }
             if (deviation_counter > num_of_deviations)
@@ -124,12 +127,16 @@ void Application::appTask(void* pvParameters)
                     // color metal
                     led_ctrl.setBlinkMode(led::Blink::yellow);
                     // place for PWM color metal sound call
+                    bz.setFrequency(3000);
+                    bz.start();
                 }
                 else
                 {
                     // black metal
                     led_ctrl.setBlinkMode(led::Blink::yellow);
                     // place for PWM black metal sound call
+                    bz.setFrequency(1000);
+                    bz.start();
                 }
             }
         } while (0);
