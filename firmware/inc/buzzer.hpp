@@ -9,6 +9,7 @@
 #define BUZZER_H
 
 #include "FreeRTOS.h"
+#include "queue.h"
 #include "task.h"
 #include <cstdint>
 
@@ -37,7 +38,7 @@ private:
     /// Deleted copy assignment operator to prevent copying.
     Buzzer& operator=(const Buzzer&) = delete;
     std::uint16_t frequency_hz = default_frequency_hz;
-
+    QueueHandle_t queue;
     StackType_t stack[stack_size];
 
     StaticTask_t task_buffer;
