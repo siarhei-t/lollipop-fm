@@ -36,7 +36,6 @@ Buzzer::Buzzer()
     uint32_t period = SystemCoreClock / default_frequency_hz - 1;
     TIM3->ARR = period;
     TIM3->CCR4 = (period + 1) / 2; // 50%
-    TIM3->CCER |= TIM_CCER_CC4E;
     TIM3->CR1 |= TIM_CR1_ARPE;
     TIM3->EGR = TIM_EGR_UG;
 }

@@ -8,6 +8,7 @@
 
 #include "app.hpp"
 #include "buzzer.hpp"
+#include "config.hpp"
 #include "frequency_meter.hpp"
 #include "io.hpp"
 #include "led.hpp"
@@ -17,22 +18,13 @@
 namespace app
 {
 
-////////////////////////DETECTOR SETTINGS AND CONSTANTS/////////////////////////////
-constexpr int log_period_ms = 2000;                         // if project build with serial port support
-constexpr int update_rate_ms = 50;                          // the period at which the frequency meter is polled
-constexpr int num_of_samples_calibration = 20;              // the number of frequency meter measurements to obtain the average value during calibration
-constexpr int allowable_deviation = 1;                      // maximum permitted deviation in absolute values ​​of the timer counter
-constexpr int num_of_deviations = 2;                        // maximum number of consecutive deviations permitted
-constexpr int log_timeout = log_period_ms / update_rate_ms; // period for serial port output
-////////////////////////////////////////////////////////////////////////////////
-
 led::LedControl& led_ctrl = led::LedControl::instance();
 serial::Serial& sp = serial::Serial::instance();
 fm::FrequencyMeter& fm = fm::FrequencyMeter::instance();
 io::DevicePorts& io = io::DevicePorts::instance();
 bz::Buzzer& bz = bz::Buzzer::instance();
 
-static inline uint32_t local_fabs(const uint32_t a, const uint32_t b)
+static inline std::uint32_t local_fabs(const std::uint32_t a, const std::uint32_t b)
 {
     if (a >= b)
     {
@@ -44,18 +36,18 @@ static inline uint32_t local_fabs(const uint32_t a, const uint32_t b)
     }
 }
 
-static inline uint32_t calibration()
+static inline std::uint32_t calibration()
 {
-    uint32_t cap = 0;
-    uint32_t reference = 0;
-    vTaskDelay(pdMS_TO_TICKS(1000));
-    for (int i = 0; i < num_of_samples_calibration; ++i)
+    std::uint32_t cap = 0;
+    std::uint32_t reference = 0;
+
+    for (int i = 0; i < cfg::initial_num_of_samples; ++i)
     {
         cap += fm.getValue();
         sp.print("cap = %d\n", cap);
-        vTaskDelay(pdMS_TO_TICKS(update_rate_ms));
+        vTaskDelay(pdMS_TO_TICKS(cfg::update_rate_ms));
     }
-    reference = cap / num_of_samples_calibration;
+    reference = cap / cfg::initial_num_of_samples;
     return reference;
 }
 
@@ -100,14 +92,14 @@ void Application::appTask(void* pvParameters)
 
         captured_value = fm.getValue();
         deviation = local_fabs(reference, captured_value);
-        if ((tick_counter % log_timeout) == 0)
+        if ((tick_counter % cfg::log_timeout) == 0)
         {
             sp.print("captured value : %d, deviation : %d \n", captured_value, deviation);
         }
         // logic for deviation
         do
         {
-            if (deviation > allowable_deviation)
+            if (deviation > cfg::allowable_deviation)
             {
                 ++deviation_counter;
             }
@@ -119,7 +111,7 @@ void Application::appTask(void* pvParameters)
                 //  place for PWM sound off
                 break;
             }
-            if (deviation_counter > num_of_deviations)
+            if (deviation_counter > cfg::num_of_deviations)
             {
                 // looks like we have something
                 if (captured_value < reference)
@@ -141,7 +133,7 @@ void Application::appTask(void* pvParameters)
             }
         } while (0);
 
-        vTaskDelay(pdMS_TO_TICKS(update_rate_ms));
+        vTaskDelay(pdMS_TO_TICKS(cfg::update_rate_ms));
     }
 }
 

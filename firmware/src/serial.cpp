@@ -20,7 +20,7 @@ namespace serial
 {
 
 // we expect clock 8MHz, oversampling 16
-constexpr std::uint32_t baudrate_57600 = 834;
+constexpr std::uint32_t baudrate_57600 = 139;
 
 Serial& Serial::instance()
 {

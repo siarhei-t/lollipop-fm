@@ -149,10 +149,10 @@ void SystemInit(void)
 #else
     SCB->VTOR = FLASH_BASE | VECT_TAB_OFFSET; /* Vector Table Relocation in Internal FLASH */
 #endif
-    RCC->CR &= ~RCC_CR_HSIDIV;
-    SystemCoreClock = 48000000;
-    /*
-      // Extra logic, enabling 8 MHz external oscillator
+    // RCC->CR &= ~RCC_CR_HSIDIV;
+    // SystemCoreClock = 48000000;
+
+    // Extra logic, enabling 8 MHz external oscillator
     RCC->CR |= RCC_CR_HSEON;
     while ((RCC->CR & RCC_CR_HSERDY) == 0)
     {
@@ -169,7 +169,6 @@ void SystemInit(void)
     RCC->CFGR &= ~RCC_CFGR_PPRE_Msk; // APB = HCLK / 1
 
     SystemCoreClock = 8000000;
-    */
 }
 
 /**
