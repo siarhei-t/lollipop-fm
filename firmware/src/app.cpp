@@ -18,7 +18,7 @@
 namespace app
 {
 
-led::LedControl& led_ctrl = led::LedControl::instance();
+led::LedControl& led = led::LedControl::instance();
 serial::Serial& sp = serial::Serial::instance();
 fm::FrequencyMeter& fm = fm::FrequencyMeter::instance();
 io::DevicePorts& io = io::DevicePorts::instance();
@@ -61,8 +61,10 @@ void Application::start()
 {
     // create main task
     task_handle = xTaskCreateStatic(&Application::appTask, "app", stack_size, nullptr, task_priority, stack, &task_buffer);
-    // create led task
-    led_ctrl.init();
+    // create and start led task control
+    led.init();
+    // create and start buzzer task control
+    bz.init();
     // enable oscillator
     fm.start();
 }
@@ -106,7 +108,7 @@ void Application::appTask(void* pvParameters)
             else
             {
                 deviation_counter = 0;
-                led_ctrl.setBlinkMode(led::Blink::off);
+                led.setBlinkMode(led::Blink::off);
                 bz.stop();
                 //  place for PWM sound off
                 break;
@@ -117,7 +119,7 @@ void Application::appTask(void* pvParameters)
                 if (captured_value < reference)
                 {
                     // color metal
-                    led_ctrl.setBlinkMode(led::Blink::yellow);
+                    led.setBlinkMode(led::Blink::yellow);
                     // place for PWM color metal sound call
                     bz.setFrequency(3000);
                     bz.start();
@@ -125,7 +127,7 @@ void Application::appTask(void* pvParameters)
                 else
                 {
                     // black metal
-                    led_ctrl.setBlinkMode(led::Blink::yellow);
+                    led.setBlinkMode(led::Blink::yellow);
                     // place for PWM black metal sound call
                     bz.setFrequency(1000);
                     bz.start();

@@ -61,4 +61,16 @@ void Buzzer::setFrequency(const std::uint16_t frequency_hz)
     TIM3->CCR2 = (period + 1) / 2;
 }
 
+void Buzzer::buzzerTask(void* pvParameters)
+{
+    (void)(pvParameters);
+
+    for (;;)
+    {
+        vTaskDelay(pdMS_TO_TICKS(1000));
+    }
+}
+
+void Buzzer::init() { task_handle = xTaskCreateStatic(&Buzzer::buzzerTask, "buzzer control", stack_size, nullptr, task_priority, stack, &task_buffer); }
+
 } // namespace bz

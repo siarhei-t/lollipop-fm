@@ -42,6 +42,7 @@
     "PUPD",
     "PUPDR",
     "RTSR",
+    "SMCR",
     "syscalls",
     "SYSCFGEN",
     "TCIE",
