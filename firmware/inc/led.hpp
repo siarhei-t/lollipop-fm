@@ -19,7 +19,7 @@ constexpr int stack_size = configMINIMAL_STACK_SIZE;
 
 /// Priority of LED control task.
 /// Chosen slightly below maximum to avoid starving critical system tasks.
-constexpr int task_priority = configMAX_PRIORITIES - 3;
+constexpr int task_priority = configMAX_PRIORITIES - 2;
 
 /**
  * @brief Enumeration of available LEDs on the board.

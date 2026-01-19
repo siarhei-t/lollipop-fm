@@ -20,7 +20,7 @@ namespace app
  * The priority is set slightly below the maximum to allow
  * higher-priority system or real-time tasks to preempt it if needed.
  */
-constexpr int task_priority = configMAX_PRIORITIES - 2;
+constexpr int task_priority = configMAX_PRIORITIES - 3;
 
 /**
  * @brief Stack size of the application task.

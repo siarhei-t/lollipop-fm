@@ -11,26 +11,9 @@
 namespace bz
 {
 
-enum class Note : uint8_t
-{
-    C6,
-    D6,
-    E6,
-    F6,
-    G6,
-    A6,
-    B6,
-    C7,
-    D7,
-    E7,
-    F7,
-    G7,
-    A7,
-    B7,
-    None
-};
+constexpr Tone ready[] = {{Note::D7, 100}, {Note::None, 100}, {Note::G7, 100}, {Note::None, 100}, {Note::G7, 100}, {Note::None, 100}};
 
-constexpr uint16_t getFrequency(Note n)
+constexpr std::uint16_t getFrequency(Note n)
 {
     switch (n)
     {
@@ -70,26 +53,6 @@ constexpr uint16_t getFrequency(Note n)
     return 0;
 }
 
-enum class BuzzerCmd : uint8_t
-{
-    PlayOnce,
-    PlayLoop,
-    Stop
-};
-
-struct Tone
-{
-    Note note;
-    std::uint16_t duration_ms;
-};
-
-struct BuzzerMessage
-{
-    BuzzerCmd cmd;
-    const Tone* melody;
-    size_t length;
-};
-
 Buzzer& Buzzer::instance()
 {
     static Buzzer bz;
@@ -119,6 +82,12 @@ Buzzer::Buzzer()
     TIM3->EGR = TIM_EGR_UG;
 }
 
+void Buzzer::playReady()
+{
+    Sound sound = Sound(PlayType::Once, ready, sizeof(ready) / sizeof(Tone));
+    xQueueSend(queue, &sound, 0);
+}
+
 void Buzzer::start()
 {
     TIM3->CCER |= TIM_CCER_CC4E;
@@ -143,46 +112,49 @@ void Buzzer::setFrequency(const std::uint16_t frequency_hz)
 void Buzzer::buzzerTask(void* pvParameters)
 {
     (void)(pvParameters);
-
     for (;;)
     {
-        vTaskDelay(pdMS_TO_TICKS(1000));
-        /*
-        xQueueReceive(buzzerQueue, &msg, portMAX_DELAY);
-
-        if (msg.cmd == BuzzerCmd::Stop) {
-            buzzer.stop();
+        Sound sound;
+        xQueueReceive(instance().queue, &sound, portMAX_DELAY);
+        if (sound.melody == nullptr)
+        {
+            instance().stop();
             continue;
         }
 
-        const Tone* melody = msg.melody;
-        size_t len = msg.length;
-
-        do {
-            for (size_t i = 0; i < len; ++i) {
-
-
-                if (xQueueReceive(buzzerQueue, &msg, 0) == pdTRUE) {
-                    buzzer.stop();
+        const Tone* melody = sound.melody;
+        size_t len = sound.length;
+        do
+        {
+            for (size_t i = 0; i < len; ++i)
+            {
+                if (uxQueueMessagesWaiting(instance().queue) > 0)
+                {
+                    instance().stop();
                     break;
                 }
 
-                if (melody[i].note == Note::Silence) {
-                    buzzer.stop();
-                } else {
-                    buzzer.setFrequency(noteFrequency(melody[i].note));
-                    buzzer.start();
+                if (melody[i].note == Note::None)
+                {
+                    instance().stop();
                 }
-
+                else
+                {
+                    instance().setFrequency(getFrequency(melody[i].note));
+                    instance().start();
+                }
                 vTaskDelay(pdMS_TO_TICKS(melody[i].duration_ms));
             }
 
-        } while (msg.cmd == BuzzerCmd::PlayLoop);
-
-        buzzer.stop();*/
+        } while (sound.type == PlayType::Loop);
+        instance().stop();
     }
 }
 
-void Buzzer::init() { task_handle = xTaskCreateStatic(&Buzzer::buzzerTask, "buzzer control", stack_size, nullptr, task_priority, stack, &task_buffer); }
+void Buzzer::init()
+{
+    task_handle = xTaskCreateStatic(&Buzzer::buzzerTask, "buzzer control", stack_size, nullptr, task_priority, stack, &task_buffer);
+    queue = xQueueCreateStatic(queue_length, sizeof(Sound), queue_storage, &queue_struct);
+}
 
 } // namespace bz
