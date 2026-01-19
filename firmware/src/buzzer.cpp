@@ -11,7 +11,8 @@
 namespace bz
 {
 
-constexpr Tone ready[] = {{Note::D7, 100}, {Note::None, 100}, {Note::G7, 100}, {Note::None, 100}, {Note::G7, 100}, {Note::None, 100}};
+constexpr Tone ferrite[] = {{Note::F7, 200}, {Note::None, 200}};
+constexpr Tone non_ferrite[] = {{Note::G7, 100}, {Note::None, 100}};
 
 constexpr std::uint16_t getFrequency(Note n)
 {
@@ -74,17 +75,26 @@ Buzzer::Buzzer()
     TIM3->CCMR2 &= ~(TIM_CCMR2_OC4M_Msk | TIM_CCMR2_OC4PE);
     TIM3->CCMR2 |= (6U << TIM_CCMR2_OC4M_Pos) | TIM_CCMR2_OC4PE;
     TIM3->PSC = 0;
-
-    uint32_t period = SystemCoreClock / default_frequency_hz - 1;
-    TIM3->ARR = period;
-    TIM3->CCR4 = (period + 1) / 2; // 50%
     TIM3->CR1 |= TIM_CR1_ARPE;
     TIM3->EGR = TIM_EGR_UG;
 }
 
-void Buzzer::playReady()
+void Buzzer::playFerrite()
 {
-    Sound sound = Sound(PlayType::Once, ready, sizeof(ready) / sizeof(Tone));
+    Sound sound = Sound(PlayType::Loop, ferrite, sizeof(ferrite) / sizeof(Tone));
+    xQueueSend(queue, &sound, 0);
+}
+
+void Buzzer::playNoneFerrite()
+{
+    Sound sound = Sound(PlayType::Loop, non_ferrite, sizeof(non_ferrite) / sizeof(Tone));
+    xQueueSend(queue, &sound, 0);
+}
+
+void Buzzer::stopPlaying()
+{
+    Sound sound;
+    frequency_hz = 0;
     xQueueSend(queue, &sound, 0);
 }
 
@@ -102,11 +112,15 @@ void Buzzer::stop()
 
 void Buzzer::setFrequency(const std::uint16_t frequency_hz)
 {
-    uint32_t timer_clk = SystemCoreClock;
-    uint32_t period = timer_clk / frequency_hz - 1;
+    if (this->frequency_hz != frequency_hz)
+    {
+        this->frequency_hz = frequency_hz;
+        uint32_t timer_clk = SystemCoreClock;
+        uint32_t period = timer_clk / frequency_hz - 1;
 
-    TIM3->ARR = period;
-    TIM3->CCR2 = (period + 1) / 2;
+        TIM3->ARR = period;
+        TIM3->CCR4 = (period + 1) / 2;
+    }
 }
 
 void Buzzer::buzzerTask(void* pvParameters)

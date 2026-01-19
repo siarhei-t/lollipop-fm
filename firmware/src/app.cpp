@@ -90,14 +90,13 @@ void Application::appTask(void* pvParameters)
             calibrated = true;
             sp.print("calibration done!\n");
             sp.print("reference = %d\n", reference);
-            bz.playReady();
         }
 
         captured_value = fm.getValue();
         deviation = local_fabs(reference, captured_value);
         if ((tick_counter % cfg::log_timeout) == 0)
         {
-            // sp.print("captured value : %d, deviation : %d \n", captured_value, deviation);
+            sp.print("captured value : %d, deviation : %d \n", captured_value, deviation);
         }
         // logic for deviation
         do
@@ -110,7 +109,7 @@ void Application::appTask(void* pvParameters)
             {
                 deviation_counter = 0;
                 led.setBlinkMode(led::Blink::off);
-                //  place for PWM sound off
+                bz.stopPlaying();
                 break;
             }
             if (deviation_counter > cfg::num_of_deviations)
@@ -120,13 +119,13 @@ void Application::appTask(void* pvParameters)
                 {
                     // non ferrite metal
                     led.setBlinkMode(led::Blink::yellow);
-                    // place for PWM color metal sound call
+                    bz.playFerrite();
                 }
                 else
                 {
                     // ferrite metal
                     led.setBlinkMode(led::Blink::yellow);
-                    // place for PWM black metal sound call
+                    bz.playNoneFerrite();
                 }
             }
         } while (0);

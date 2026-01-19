@@ -20,7 +20,6 @@ namespace bz
 constexpr size_t queue_length = 2;
 constexpr int stack_size = configMINIMAL_STACK_SIZE;
 constexpr int task_priority = configMAX_PRIORITIES - 2;
-constexpr std::uint32_t default_frequency_hz = 1000;
 
 enum class Note : std::uint8_t
 {
@@ -67,7 +66,9 @@ class Buzzer
 public:
     static Buzzer& instance();
     void init();
-    void playReady();
+    void playFerrite();
+    void playNoneFerrite();
+    void stopPlaying();
     static void buzzerTask(void* pvParameters);
 
 private:
@@ -77,7 +78,7 @@ private:
     void start();
     void stop();
     void setFrequency(const std::uint16_t frequency_hz);
-    std::uint16_t frequency_hz = default_frequency_hz;
+    std::uint16_t frequency_hz = 0;
     QueueHandle_t queue;
     StackType_t stack[stack_size];
     StaticTask_t task_buffer;
