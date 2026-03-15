@@ -1,0 +1,134 @@
+(footprint "pad-4-pin-2,54"
+	(version 20241229)
+	(generator "pcbnew")
+	(generator_version "9.0")
+	(layer "F.Cu")
+	(property "Reference" "REF**"
+		(at 4.5 -2 0)
+		(unlocked yes)
+		(layer "F.SilkS")
+		(uuid "27e4f827-114c-4513-a534-07cb065846e1")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.1)
+			)
+		)
+	)
+	(property "Value" "pad-4-pin-2,54"
+		(at 3.5 2 0)
+		(unlocked yes)
+		(layer "F.Fab")
+		(uuid "71e2fcb2-cf7a-4a7d-ac1f-d1e97e52520f")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Datasheet" ""
+		(at 0 0 0)
+		(unlocked yes)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "6c26c7e5-a722-4c7e-a7eb-00a3b471ea13")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Description" ""
+		(at 0 0 0)
+		(unlocked yes)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "7b832757-f216-4590-a49d-35663fc36ed2")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(attr smd)
+	(fp_line
+		(start -1.5 -1.4)
+		(end 9 -1.4)
+		(stroke
+			(width 0.1)
+			(type default)
+		)
+		(layer "F.SilkS")
+		(uuid "513e14f4-6d9c-4c4f-9078-1900c0a238ae")
+	)
+	(fp_line
+		(start -1.5 1.4)
+		(end -1.5 -1.4)
+		(stroke
+			(width 0.1)
+			(type default)
+		)
+		(layer "F.SilkS")
+		(uuid "a37892fe-4cfb-4b6d-a372-181c2b95bfbc")
+	)
+	(fp_line
+		(start 9 -1.4)
+		(end 9 1.4)
+		(stroke
+			(width 0.1)
+			(type default)
+		)
+		(layer "F.SilkS")
+		(uuid "717dba00-80e3-4aa2-bdef-1670ab580bba")
+	)
+	(fp_line
+		(start 9 1.4)
+		(end -1.5 1.4)
+		(stroke
+			(width 0.1)
+			(type default)
+		)
+		(layer "F.SilkS")
+		(uuid "8f2150bd-7258-4609-8855-8a5013945040")
+	)
+	(fp_text user "${REFERENCE}"
+		(at 4 4 0)
+		(unlocked yes)
+		(layer "F.Fab")
+		(uuid "db2df0e0-4e9d-4506-a457-a0ed7373b8eb")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(pad "1" smd circle
+		(at 0 0)
+		(size 2 2)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(uuid "9c274f5e-0cf3-4157-8af7-481aab0fe874")
+	)
+	(pad "2" smd circle
+		(at 2.54 0)
+		(size 2 2)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(uuid "d3ec12d1-94ff-4509-9cce-3657e34fd20d")
+	)
+	(pad "3" smd circle
+		(at 5.08 0)
+		(size 2 2)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(uuid "4117c048-e7f5-43c2-ac9e-3aa6f4f38302")
+	)
+	(pad "4" smd circle
+		(at 7.62 0)
+		(size 2 2)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(uuid "d950ba52-c281-4090-b7aa-72771c795030")
+	)
+	(embedded_fonts no)
+)
