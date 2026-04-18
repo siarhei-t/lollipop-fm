@@ -1,0 +1,25 @@
+{
+	"folders":
+	[
+		{
+			"path": "."
+		}
+	],
+	"build_systems": [
+        {
+            "name": "CMake",
+            "working_dir": "${folder}",
+            "variants": [
+                {
+                    "name": "CONFIGURE",
+                    "cmd": ["/opt/homebrew/bin/cmake", "-DCMAKE_EXPORT_COMPILE_COMMANDS=1", "-Bbuild"]
+                },
+                {
+                    "name": "BUILD",
+                    "cmd": ["/opt/homebrew/bin/cmake", "--build", "build"]
+                }
+            ],
+            "quiet": false
+        }
+    ]
+}
