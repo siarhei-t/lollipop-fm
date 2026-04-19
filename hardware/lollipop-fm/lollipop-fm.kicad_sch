@@ -5783,7 +5783,7 @@
 		)
 		(uuid "157e36f5-0e72-46d7-ac2d-caf9c3680a4d")
 	)
-	(label "led_yellow"
+	(label "led_f"
 		(at 212.09 168.91 0)
 		(effects
 			(font
@@ -5793,7 +5793,7 @@
 		)
 		(uuid "16a700a9-9da4-4608-baf6-88b0c56ef76e")
 	)
-	(label "led_green"
+	(label "led_non_f"
 		(at 196.85 168.91 0)
 		(effects
 			(font
@@ -5833,16 +5833,6 @@
 		)
 		(uuid "284f0701-fbc5-4f31-a039-4399dc38e6dd")
 	)
-	(label "led_green"
-		(at 101.6 147.32 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "2f98bcbf-b210-4039-a5dc-b00e378f25fb")
-	)
 	(label "bat_lvl"
 		(at 101.6 137.16 0)
 		(effects
@@ -5863,15 +5853,15 @@
 		)
 		(uuid "59a6d623-04fc-4c96-9632-67c7a3b8fe88")
 	)
-	(label "led_yellow"
-		(at 101.6 149.86 0)
+	(label "led_non_f"
+		(at 101.6 147.32 0)
 		(effects
 			(font
 				(size 1.27 1.27)
 			)
 			(justify left bottom)
 		)
-		(uuid "66fd23d7-2850-4a94-b8ca-d5cd7368d8d9")
+		(uuid "5f915b25-b5d5-469f-aec7-861c5c4a68e6")
 	)
 	(label "osc_out"
 		(at 344.17 66.04 0)
@@ -5992,6 +5982,16 @@
 			(justify left bottom)
 		)
 		(uuid "e46baf28-747c-402b-adbe-d2c46f46b2ee")
+	)
+	(label "led_f"
+		(at 101.6 149.86 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "e878cc3a-d454-43ed-9a62-b43dafd643d5")
 	)
 	(symbol
 		(lib_id "custom_lib:TLV9101IDCKR")

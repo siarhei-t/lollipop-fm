@@ -108,7 +108,7 @@ void Application::appTask(void* pvParameters)
             else
             {
                 deviation_counter = 0;
-                led.setBlinkMode(led::Blink::off);
+                led.setBlinkMode(led::Blink::Off);
                 bz.stopPlaying();
                 break;
             }
@@ -118,13 +118,13 @@ void Application::appTask(void* pvParameters)
                 if (captured_value < reference)
                 {
                     // non ferrite metal
-                    led.setBlinkMode(led::Blink::yellow);
+                    led.setBlinkMode(led::Blink::NoneFerrite);
                     bz.playFerrite();
                 }
                 else
                 {
                     // ferrite metal
-                    led.setBlinkMode(led::Blink::yellow);
+                    led.setBlinkMode(led::Blink::Ferrite);
                     bz.playNoneFerrite();
                 }
             }

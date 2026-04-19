@@ -7,10 +7,20 @@
  */
 
 #include "led.hpp"
+#include <cstdint>
 #include <stm32c011xx.h>
 
 namespace led
 {
+
+constexpr uint32_t ferrite_out_reg_mask = GPIO_ODR_OD8;
+constexpr uint32_t non_ferrite_out_reg_mask = GPIO_ODR_OD7;
+constexpr uint32_t ferrite_bit_set_mask = GPIO_BSRR_BS8;
+constexpr uint32_t ferrite_bit_reset_mask = GPIO_BSRR_BR8;
+constexpr uint32_t non_ferrite_bit_set_mask = GPIO_BSRR_BS7;
+constexpr uint32_t non_ferrite_bit_reset_mask = GPIO_BSRR_BR7;
+
+constexpr int blink_task_delay = 100;
 
 LedControl& LedControl::instance()
 {
@@ -21,32 +31,32 @@ LedControl& LedControl::instance()
 LedControl::LedControl()
 {
     RCC->IOPENR |= RCC_IOPENR_GPIOAEN;
-    // GREEN led at PA5 and YELLOW led at PA6
-    GPIOA->MODER &= ~GPIO_MODER_MODE5;
-    GPIOA->MODER &= ~GPIO_MODER_MODE6;
+    // LOLLIPOP-FM rev. 1.0 board
+    // ferrite indication led at PA8 and non ferrite led indication at PA7
     // outputs, no pullup/pulldown, low speed
-    GPIOA->MODER |= (GPIO_MODER_MODE5_0 | GPIO_MODER_MODE6_0);
-    disable(Leds::green);
-    disable(Leds::yellow);
+    GPIOA->MODER &= ~GPIO_MODER_MODE7;
+    GPIOA->MODER &= ~GPIO_MODER_MODE8;
+    GPIOA->MODER |= (GPIO_MODER_MODE7_0 | GPIO_MODER_MODE8_0);
+    disable(Leds::All);
 }
 
-void LedControl::setBlinkMode(const Blink mode, const bool yellow, const bool green)
+void LedControl::setBlinkMode(const Blink mode, const bool f, const bool non_f)
 {
-    if (yellow)
+    if (f)
     {
-        enable(Leds::yellow);
+        enable(Leds::Ferrite);
     }
     else
     {
-        disable(Leds::yellow);
+        disable(Leds::Ferrite);
     }
-    if (green)
+    if (non_f)
     {
-        enable(Leds::green);
+        enable(Leds::NoneFerrite);
     }
     else
     {
-        disable(Leds::green);
+        disable(Leds::NoneFerrite);
     }
     blink_mode = mode;
 }
@@ -55,16 +65,16 @@ void LedControl::enable(const Leds led)
 {
     switch (led)
     {
-        case Leds::green:
-            GPIOA->BSRR |= GPIO_BSRR_BR5;
+        case Leds::Ferrite:
+            GPIOA->BSRR |= ferrite_bit_reset_mask;
             break;
-        case Leds::yellow:
-            GPIOA->BSRR |= GPIO_BSRR_BR6;
+        case Leds::NoneFerrite:
+            GPIOA->BSRR |= non_ferrite_bit_reset_mask;
             break;
-        case Leds::all:
+        case Leds::All:
         default:
-            GPIOA->BSRR |= GPIO_BSRR_BR5;
-            GPIOA->BSRR |= GPIO_BSRR_BR6;
+            GPIOA->BSRR |= ferrite_bit_reset_mask;
+            GPIOA->BSRR |= non_ferrite_bit_reset_mask;
             break;
     }
 }
@@ -73,16 +83,16 @@ void LedControl::disable(const Leds led)
 {
     switch (led)
     {
-        case Leds::green:
-            GPIOA->BSRR |= GPIO_BSRR_BS5;
+        case Leds::Ferrite:
+            GPIOA->BSRR |= ferrite_bit_set_mask;
             break;
-        case Leds::yellow:
-            GPIOA->BSRR |= GPIO_BSRR_BS6;
+        case Leds::NoneFerrite:
+            GPIOA->BSRR |= non_ferrite_bit_set_mask;
             break;
-        case Leds::all:
+        case Leds::All:
         default:
-            GPIOA->BSRR |= GPIO_BSRR_BS5;
-            GPIOA->BSRR |= GPIO_BSRR_BS6;
+            GPIOA->BSRR |= ferrite_bit_set_mask;
+            GPIOA->BSRR |= non_ferrite_bit_set_mask;
             break;
     }
 }
@@ -91,44 +101,44 @@ void LedControl::toggle(const Leds led)
 {
     switch (led)
     {
-        case Leds::green:
-            if (GPIOA->ODR & GPIO_ODR_OD5)
+        case Leds::Ferrite:
+            if (GPIOA->ODR & ferrite_out_reg_mask)
             {
-                GPIOA->BSRR = GPIO_BSRR_BR5;
+                GPIOA->BSRR = ferrite_bit_reset_mask;
             }
             else
             {
-                GPIOA->BSRR = GPIO_BSRR_BS5;
+                GPIOA->BSRR = ferrite_bit_set_mask;
             }
             break;
 
-        case Leds::yellow:
-            if (GPIOA->ODR & GPIO_ODR_OD6)
+        case Leds::NoneFerrite:
+            if (GPIOA->ODR & non_ferrite_out_reg_mask)
             {
-                GPIOA->BSRR = GPIO_BSRR_BR6;
+                GPIOA->BSRR = non_ferrite_bit_reset_mask;
             }
             else
             {
-                GPIOA->BSRR = GPIO_BSRR_BS6;
+                GPIOA->BSRR = non_ferrite_bit_set_mask;
             }
             break;
-        case Leds::all:
+        case Leds::All:
         default:
-            if (GPIOA->ODR & GPIO_ODR_OD5)
+            if (GPIOA->ODR & ferrite_out_reg_mask)
             {
-                GPIOA->BSRR = GPIO_BSRR_BR5;
+                GPIOA->BSRR = ferrite_bit_reset_mask;
             }
             else
             {
-                GPIOA->BSRR = GPIO_BSRR_BS5;
+                GPIOA->BSRR = ferrite_bit_set_mask;
             }
-            if (GPIOA->ODR & GPIO_ODR_OD6)
+            if (GPIOA->ODR & non_ferrite_out_reg_mask)
             {
-                GPIOA->BSRR = GPIO_BSRR_BR6;
+                GPIOA->BSRR = non_ferrite_bit_reset_mask;
             }
             else
             {
-                GPIOA->BSRR = GPIO_BSRR_BS6;
+                GPIOA->BSRR = non_ferrite_bit_set_mask;
             }
             break;
     }
@@ -142,26 +152,26 @@ void LedControl::ledTask(void* pvParameters)
     {
         switch (instance().blink_mode)
         {
-            case Blink::green:
-                instance().disable(Leds::yellow);
-                instance().toggle(Leds::green);
-                vTaskDelay(pdMS_TO_TICKS(100));
+            case Blink::Ferrite:
+                instance().disable(Leds::NoneFerrite);
+                instance().toggle(Leds::Ferrite);
+                vTaskDelay(pdMS_TO_TICKS(blink_task_delay));
                 break;
-            case Blink::yellow:
-                instance().disable(Leds::green);
-                instance().toggle(Leds::yellow);
-                vTaskDelay(pdMS_TO_TICKS(100));
+            case Blink::NoneFerrite:
+                instance().disable(Leds::Ferrite);
+                instance().toggle(Leds::NoneFerrite);
+                vTaskDelay(pdMS_TO_TICKS(blink_task_delay));
                 break;
-            case Blink::both:
-                instance().toggle(Leds::yellow);
-                instance().toggle(Leds::green);
-                vTaskDelay(pdMS_TO_TICKS(100));
+            case Blink::Both:
+                instance().toggle(Leds::Ferrite);
+                instance().toggle(Leds::NoneFerrite);
+                vTaskDelay(pdMS_TO_TICKS(blink_task_delay));
                 break;
-            case Blink::off:
+            case Blink::Off:
             default:
-                instance().disable(Leds::green);
-                instance().disable(Leds::yellow);
-                vTaskDelay(pdMS_TO_TICKS(50));
+                instance().disable(Leds::Ferrite);
+                instance().disable(Leds::NoneFerrite);
+                vTaskDelay(pdMS_TO_TICKS(blink_task_delay));
                 break;
         }
     }
