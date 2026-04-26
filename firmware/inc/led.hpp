@@ -49,14 +49,10 @@ private:
 
     LedControl(const LedControl&) = delete;
     LedControl& operator=(const LedControl&) = delete;
-
-    /// Current blinking mode, accessed by the LED task.
     Blink blink_mode = Blink::Off;
-    /// Stack memory for the LED control task (static allocation).
+    // FreeRTOS static task variables
     StackType_t stack[stack_size];
-    /// Static task control block for the LED control task.
     StaticTask_t task_buffer;
-    /// Handle of the LED control FreeRTOS task.
     TaskHandle_t task_handle = nullptr;
 };
 

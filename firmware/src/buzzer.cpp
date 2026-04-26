@@ -63,20 +63,20 @@ Buzzer& Buzzer::instance()
 Buzzer::Buzzer()
 {
 
-    RCC->IOPENR |= RCC_IOPENR_GPIOBEN;
-    RCC->APBENR1 |= RCC_APBENR1_TIM3EN;
-
-    // PB7 AF3 TIM3_CH2
-    GPIOB->MODER &= ~GPIO_MODER_MODE7;
-    GPIOB->MODER |= GPIO_MODER_MODE7_1;
-    GPIOB->AFR[0] &= ~GPIO_AFRL_AFSEL7_Msk;
-    GPIOB->AFR[0] |= (3U << GPIO_AFRL_AFSEL7_Pos);
-    // TIM3 Channel 4 PWM mode 1
-    TIM3->CCMR2 &= ~(TIM_CCMR2_OC4M_Msk | TIM_CCMR2_OC4PE);
-    TIM3->CCMR2 |= (6U << TIM_CCMR2_OC4M_Pos) | TIM_CCMR2_OC4PE;
-    TIM3->PSC = 0;
-    TIM3->CR1 |= TIM_CR1_ARPE;
-    TIM3->EGR = TIM_EGR_UG;
+    RCC->IOPENR |= RCC_IOPENR_GPIOAEN;
+    RCC->APBENR2 |= RCC_APBENR2_TIM16EN;
+    // LOLLIPOP-FM rev. 1.0 board
+    // PA6 AF5
+    GPIOA->MODER &= ~GPIO_MODER_MODE6;
+    GPIOA->MODER |= GPIO_MODER_MODE6_1;
+    GPIOA->AFR[0] &= ~GPIO_AFRL_AFSEL6_Msk;
+    GPIOA->AFR[0] |= (5U << GPIO_AFRL_AFSEL6_Pos);
+    // TIM16 Channel 1 PWM mode 1
+    TIM16->CCMR1 &= ~(TIM_CCMR1_OC1M_Msk | TIM_CCMR1_OC1PE);
+    TIM16->CCMR1 |= (6U << TIM_CCMR1_OC1M_Pos) | TIM_CCMR1_OC1PE;
+    TIM16->PSC = 0;
+    TIM16->CR1 |= TIM_CR1_ARPE;
+    TIM16->EGR = TIM_EGR_UG;
 }
 
 void Buzzer::playFerrite()
@@ -100,14 +100,14 @@ void Buzzer::stopPlaying()
 
 void Buzzer::start()
 {
-    TIM3->CCER |= TIM_CCER_CC4E;
-    TIM3->CR1 |= TIM_CR1_CEN;
+    TIM16->CCER |= TIM_CCER_CC1E;
+    TIM16->CR1 |= TIM_CR1_CEN;
 }
 
 void Buzzer::stop()
 {
-    TIM3->CCER &= ~TIM_CCER_CC4E;
-    TIM3->CR1 &= ~TIM_CR1_CEN;
+    TIM16->CCER &= ~TIM_CCER_CC1E;
+    TIM16->CR1 &= ~TIM_CR1_CEN;
 }
 
 void Buzzer::setFrequency(const std::uint16_t frequency_hz)
@@ -115,11 +115,10 @@ void Buzzer::setFrequency(const std::uint16_t frequency_hz)
     if (this->frequency_hz != frequency_hz)
     {
         this->frequency_hz = frequency_hz;
-        uint32_t timer_clk = SystemCoreClock;
-        uint32_t period = timer_clk / frequency_hz - 1;
-
-        TIM3->ARR = period;
-        TIM3->CCR4 = (period + 1) / 2;
+        std::uint32_t timer_clk = SystemCoreClock;
+        std::uint32_t period = timer_clk / frequency_hz - 1;
+        TIM16->ARR = period;
+        TIM16->CCR1 = (period + 1) / 2;
     }
 }
 
