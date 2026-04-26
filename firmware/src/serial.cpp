@@ -31,24 +31,21 @@ Serial& Serial::instance()
 Serial::Serial()
 {
     RCC->IOPENR |= RCC_IOPENR_GPIOAEN;
-    RCC->APBENR2 |= RCC_APBENR2_USART1EN;
-    RCC->APBENR2 |= RCC_APBENR2_SYSCFGEN;
-
-    // Remap USART1 to PA11 / PA12, 9 and 10 is not available for this chip
-    SYSCFG->CFGR1 |= SYSCFG_CFGR1_PA11_RMP | SYSCFG_CFGR1_PA12_RMP;
-
-    GPIOA->MODER &= ~(GPIO_MODER_MODE10 | GPIO_MODER_MODE9);
-    GPIOA->MODER |= (GPIO_MODER_MODE10_1 | GPIO_MODER_MODE9_1);
-    GPIOA->OSPEEDR |= GPIO_OSPEEDR_OSPEED10 | GPIO_OSPEEDR_OSPEED9;
-    GPIOA->AFR[1] &= ~(0xF << GPIO_AFRH_AFSEL10_Pos);
-    GPIOA->AFR[1] &= ~(0xF << GPIO_AFRH_AFSEL9_Pos);
-    GPIOA->AFR[1] |= (0x1 << GPIO_AFRH_AFSEL10_Pos);
-    GPIOA->AFR[1] |= (0x1 << GPIO_AFRH_AFSEL9_Pos);
-
-    USART1->CR1 &= ~USART_CR1_UE;
-    USART1->BRR = baudrate_57600;
-    USART1->CR1 |= USART_CR1_TE | USART_CR1_RE;
-    USART1->CR1 |= USART_CR1_UE;
+    RCC->APBENR1 |= RCC_APBENR1_USART2EN;
+    // LOLLIPOP-FM rev. 1.0 board
+    // PA4 AF1, PA5 AF1
+    GPIOA->MODER &= ~(GPIO_MODER_MODE5 | GPIO_MODER_MODE4);
+    GPIOA->MODER |= (GPIO_MODER_MODE5_1 | GPIO_MODER_MODE4_1);
+    GPIOA->OSPEEDR |= GPIO_OSPEEDR_OSPEED5 | GPIO_OSPEEDR_OSPEED4;
+    GPIOA->AFR[0] &= ~(0xF << GPIO_AFRL_AFSEL5_Pos);
+    GPIOA->AFR[0] &= ~(0xF << GPIO_AFRL_AFSEL4_Pos);
+    GPIOA->AFR[0] |= (0x1 << GPIO_AFRL_AFSEL5_Pos);
+    GPIOA->AFR[0] |= (0x1 << GPIO_AFRL_AFSEL4_Pos);
+    // USART2, 57600 baudrate
+    USART2->CR1 &= ~USART_CR1_UE;
+    USART2->BRR = baudrate_57600;
+    USART2->CR1 |= USART_CR1_TE | USART_CR1_RE;
+    USART2->CR1 |= USART_CR1_UE;
 }
 
 int Serial::print(const char* format, ...)
@@ -78,11 +75,11 @@ void Serial::send(const char* p_buf, const int size)
 
 void Serial::putchar(const char c)
 {
-    while (!(USART1->ISR & USART_ISR_TXE_TXFNF))
+    while (!(USART2->ISR & USART_ISR_TXE_TXFNF))
     {
         taskYIELD();
     }
-    USART1->TDR = c;
+    USART2->TDR = c;
 }
 
 } // namespace serial
