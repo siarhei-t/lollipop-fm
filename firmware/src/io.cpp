@@ -19,12 +19,16 @@ DevicePorts& DevicePorts::instance()
 
 DevicePorts::DevicePorts()
 {
-    RCC->IOPENR |= RCC_IOPENR_GPIOBEN;
-    // PB6, oscillator power control
-    GPIOB->MODER &= ~GPIO_MODER_MODE6;
-    GPIOB->MODER |= GPIO_MODER_MODE6_0;
+    RCC->IOPENR |= RCC_IOPENR_GPIOAEN;
+    RCC->APBENR2 |= RCC_APBENR2_SYSCFGEN;
+    // LOLLIPOP-FM rev. 1.0 board
+    // Remap PA9 to PA11, PA9 is not available for this chip
+    SYSCFG->CFGR1 |= SYSCFG_CFGR1_PA11_RMP;
 
-    // PA1 input anf interrupt for control button
+    // PA9, oscillator power control
+    GPIOA->MODER &= ~GPIO_MODER_MODE9;
+    GPIOA->MODER |= GPIO_MODER_MODE9_0;
+    // PA1 input and interrupt for control button
     GPIOA->MODER &= ~GPIO_MODER_MODE1;
     // falling edge
     EXTI->RTSR1 &= ~EXTI_RTSR1_RT1;
@@ -33,11 +37,7 @@ DevicePorts::DevicePorts()
     EXTI->EXTICR[0] &= ~EXTI_EXTICR1_EXTI1;
     EXTI->IMR1 |= EXTI_IMR1_IM1;
     EXTI->FPR1 = EXTI_FPR1_FPIF1;
-
     NVIC_EnableIRQ(EXTI0_1_IRQn);
-
-    // oscillator enabled by default
-    oscSetState(true);
 }
 
 bool DevicePorts::checkButtonEvent()

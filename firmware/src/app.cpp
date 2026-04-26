@@ -60,13 +60,13 @@ Application& Application::instance()
 void Application::start()
 {
     // create main task
-    task_handle = xTaskCreateStatic(&Application::appTask, "app", stack_size, nullptr, task_priority, stack, &task_buffer);
+    // task_handle = xTaskCreateStatic(&Application::appTask, "app", stack_size, nullptr, task_priority, stack, &task_buffer);
     // create and start led task control
     led.init();
     // create and start buzzer task control
     bz.init();
     // enable oscillator
-    fm.start();
+    // fm.start();
 }
 
 void Application::appTask(void* pvParameters)
