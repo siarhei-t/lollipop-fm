@@ -52,7 +52,7 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     src/io.cpp
     src/buzzer.cpp
     src/serial.cpp
-    src/frequency_meter.cpp
+    src/fm.cpp
 )
 
 # Add include paths

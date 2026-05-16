@@ -9,7 +9,7 @@
 #include "app.hpp"
 #include "buzzer.hpp"
 #include "config.hpp"
-#include "frequency_meter.hpp"
+#include "fm.hpp"
 #include "io.hpp"
 #include "led.hpp"
 #include "serial.hpp"
