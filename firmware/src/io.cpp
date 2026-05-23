@@ -20,14 +20,11 @@ DevicePorts& DevicePorts::instance()
 DevicePorts::DevicePorts()
 {
     RCC->IOPENR |= RCC_IOPENR_GPIOAEN;
-    RCC->APBENR2 |= RCC_APBENR2_SYSCFGEN;
-    // LOLLIPOP-FM rev. 1.0 board
-    // Remap PA9 to PA11, PA9 is not available for this chip
-    SYSCFG->CFGR1 |= SYSCFG_CFGR1_PA11_RMP;
 
-    // PA9, oscillator power control
-    GPIOA->MODER &= ~GPIO_MODER_MODE9;
-    GPIOA->MODER |= GPIO_MODER_MODE9_0;
+    // LOLLIPOP-FM rev. 1.0 board
+    // PA11, oscillator power control
+    GPIOA->MODER &= ~GPIO_MODER_MODE11;
+    GPIOA->MODER |= GPIO_MODER_MODE11_0;
     // PA1 input and interrupt for control button
     GPIOA->MODER &= ~GPIO_MODER_MODE1;
     // falling edge
@@ -57,11 +54,11 @@ void DevicePorts::oscSetState(const bool state)
 {
     if (state)
     {
-        GPIOB->BSRR = GPIO_BSRR_BR6;
+        GPIOA->BSRR = GPIO_BSRR_BR11;
     }
     else
     {
-        GPIOB->BSRR = GPIO_BSRR_BS6;
+        GPIOA->BSRR = GPIO_BSRR_BS11;
     }
 }
 

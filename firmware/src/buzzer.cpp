@@ -71,12 +71,14 @@ Buzzer::Buzzer()
     GPIOA->MODER |= GPIO_MODER_MODE6_1;
     GPIOA->AFR[0] &= ~GPIO_AFRL_AFSEL6_Msk;
     GPIOA->AFR[0] |= (5U << GPIO_AFRL_AFSEL6_Pos);
+
     // TIM16 Channel 1 PWM mode 1
     TIM16->CCMR1 &= ~(TIM_CCMR1_OC1M_Msk | TIM_CCMR1_OC1PE);
     TIM16->CCMR1 |= (6U << TIM_CCMR1_OC1M_Pos) | TIM_CCMR1_OC1PE;
     TIM16->PSC = 0;
     TIM16->CR1 |= TIM_CR1_ARPE;
     TIM16->EGR = TIM_EGR_UG;
+    TIM16->BDTR |= TIM_BDTR_MOE;
 }
 
 void Buzzer::playFerrite()

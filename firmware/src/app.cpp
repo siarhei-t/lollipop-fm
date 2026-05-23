@@ -60,14 +60,14 @@ Application& Application::instance()
 void Application::start()
 {
     // create main task
-    // task_handle = xTaskCreateStatic(&Application::appTask, "app", stack_size, nullptr, task_priority, stack, &task_buffer);
+    task_handle = xTaskCreateStatic(&Application::appTask, "app", stack_size, nullptr, task_priority, stack, &task_buffer);
     // create and start led task control
     led.init();
     // create and start buzzer task control
-    bz.init();
+    // bz.init();
     // enable oscillator
-    // fm.start();
-    led.setBlinkMode(led::Blink::Both);
+    fm.start();
+    io.oscSetState(true);
 }
 
 void Application::appTask(void* pvParameters)
@@ -110,7 +110,7 @@ void Application::appTask(void* pvParameters)
             {
                 deviation_counter = 0;
                 led.setBlinkMode(led::Blink::Off);
-                bz.stopPlaying();
+                // bz.stopPlaying();
                 break;
             }
             if (deviation_counter > cfg::num_of_deviations)
@@ -120,13 +120,13 @@ void Application::appTask(void* pvParameters)
                 {
                     // non ferrite metal
                     led.setBlinkMode(led::Blink::NoneFerrite);
-                    bz.playFerrite();
+                    // bz.playFerrite();
                 }
                 else
                 {
                     // ferrite metal
                     led.setBlinkMode(led::Blink::Ferrite);
-                    bz.playNoneFerrite();
+                    // bz.playNoneFerrite();
                 }
             }
         } while (0);
