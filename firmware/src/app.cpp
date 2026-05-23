@@ -66,8 +66,8 @@ void Application::start()
     // create and start buzzer task control
     // bz.init();
     // enable oscillator
-    fm.start();
     io.oscSetState(true);
+    fm.start();
 }
 
 void Application::appTask(void* pvParameters)
