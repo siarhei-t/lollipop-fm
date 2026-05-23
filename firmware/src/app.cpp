@@ -67,6 +67,7 @@ void Application::start()
     bz.init();
     // enable oscillator
     // fm.start();
+    led.setBlinkMode(led::Blink::Both);
 }
 
 void Application::appTask(void* pvParameters)
