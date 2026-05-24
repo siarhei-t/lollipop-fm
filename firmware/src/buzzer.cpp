@@ -6,6 +6,7 @@
  */
 
 #include "buzzer.hpp"
+#include "config.hpp"
 #include <stm32c011xx.h>
 
 namespace bz
@@ -83,13 +84,13 @@ Buzzer::Buzzer()
 
 void Buzzer::playFerrite()
 {
-    Sound sound = Sound(PlayType::Loop, ferrite, sizeof(ferrite) / sizeof(Tone));
+    static const Sound sound = Sound(PlayType::Loop, ferrite, sizeof(ferrite) / sizeof(Tone));
     xQueueSend(queue, &sound, 0);
 }
 
 void Buzzer::playNoneFerrite()
 {
-    Sound sound = Sound(PlayType::Loop, non_ferrite, sizeof(non_ferrite) / sizeof(Tone));
+    static const Sound sound = Sound(PlayType::Loop, non_ferrite, sizeof(non_ferrite) / sizeof(Tone));
     xQueueSend(queue, &sound, 0);
 }
 
@@ -126,42 +127,32 @@ void Buzzer::setFrequency(const std::uint16_t frequency_hz)
 
 void Buzzer::buzzerTask(void* pvParameters)
 {
+    static Sound sound;
+
     (void)(pvParameters);
     for (;;)
     {
-        Sound sound;
         xQueueReceive(instance().queue, &sound, portMAX_DELAY);
         if (sound.melody == nullptr)
         {
             instance().stop();
+            vTaskDelay(pdMS_TO_TICKS(cfg::update_rate_ms));
             continue;
         }
-
         const Tone* melody = sound.melody;
-        size_t len = sound.length;
-        do
+        for (size_t i = 0; i < sound.length; ++i)
         {
-            for (size_t i = 0; i < len; ++i)
+            if (melody[i].note == Note::None)
             {
-                if (uxQueueMessagesWaiting(instance().queue) > 0)
-                {
-                    instance().stop();
-                    break;
-                }
-
-                if (melody[i].note == Note::None)
-                {
-                    instance().stop();
-                }
-                else
-                {
-                    instance().setFrequency(getFrequency(melody[i].note));
-                    instance().start();
-                }
-                vTaskDelay(pdMS_TO_TICKS(melody[i].duration_ms));
+                instance().stop();
             }
-
-        } while (sound.type == PlayType::Loop);
+            else
+            {
+                instance().setFrequency(getFrequency(melody[i].note));
+                instance().start();
+            }
+            vTaskDelay(pdMS_TO_TICKS(melody[i].duration_ms));
+        }
         instance().stop();
     }
 }

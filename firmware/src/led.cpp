@@ -13,12 +13,12 @@
 namespace led
 {
 
-constexpr std::uint32_t ferrite_out_reg_mask = GPIO_ODR_OD7;
-constexpr std::uint32_t non_ferrite_out_reg_mask = GPIO_ODR_OD8;
-constexpr std::uint32_t ferrite_bit_set_mask = GPIO_BSRR_BS7;
-constexpr std::uint32_t ferrite_bit_reset_mask = GPIO_BSRR_BR7;
-constexpr std::uint32_t non_ferrite_bit_set_mask = GPIO_BSRR_BS8;
-constexpr std::uint32_t non_ferrite_bit_reset_mask = GPIO_BSRR_BR8;
+constexpr std::uint32_t ferrite_out_reg_mask = GPIO_ODR_OD8;
+constexpr std::uint32_t non_ferrite_out_reg_mask = GPIO_ODR_OD7;
+constexpr std::uint32_t ferrite_bit_set_mask = GPIO_BSRR_BS8;
+constexpr std::uint32_t ferrite_bit_reset_mask = GPIO_BSRR_BR8;
+constexpr std::uint32_t non_ferrite_bit_set_mask = GPIO_BSRR_BS7;
+constexpr std::uint32_t non_ferrite_bit_reset_mask = GPIO_BSRR_BR7;
 
 constexpr int blink_task_delay = 100;
 

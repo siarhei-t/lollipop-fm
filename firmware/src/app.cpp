@@ -105,7 +105,7 @@ void Application::appTask(void* pvParameters)
             sp.print("calibration...\n");
             reference = calibration();
             calibrated = true;
-            sp.print("calibration done!\n");
+            sp.print("calibration done, reference : %d , allowable deviation : %d \n", reference, cfg::allowable_deviation);
             sp.print("reference = %d\n", reference);
         }
 
@@ -120,8 +120,6 @@ void Application::appTask(void* pvParameters)
         {
             sp.print("captured value : %d, deviation : %d \n", captured_value, deviation);
         }
-        // logic for deviation
-
         do
         {
             if (deviation > cfg::allowable_deviation)
@@ -138,17 +136,17 @@ void Application::appTask(void* pvParameters)
             if (deviation_counter > cfg::num_of_deviations)
             {
                 // looks like we have something
-                if (captured_value < reference)
+                if (captured_value > reference)
                 {
                     // non ferrite metal
                     led.setBlinkMode(led::Blink::NoneFerrite);
-                    bz.playFerrite();
+                    bz.playNoneFerrite();
                 }
                 else
                 {
                     // ferrite metal
                     led.setBlinkMode(led::Blink::Ferrite);
-                    bz.playNoneFerrite();
+                    bz.playFerrite();
                 }
             }
         } while (0);
