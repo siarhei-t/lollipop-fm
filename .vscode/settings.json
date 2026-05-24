@@ -27,6 +27,7 @@
     "DMAMUX",
     "DMAREQ",
     "eabi",
+    "ETPS",
     "EXTI",
     "EXTICR",
     "FTSR",

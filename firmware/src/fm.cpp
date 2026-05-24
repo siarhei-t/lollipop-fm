@@ -6,15 +6,14 @@
  */
 
 #include "fm.hpp"
+#include "config.hpp"
 #include <stm32c011xx.h>
 
 namespace fm
 {
 
-// ID from rm0490 form DMAMUX config
-constexpr std::uint32_t tim1_channel1_id = 20;
 // top value for TIM ARR register
-constexpr std::uint32_t counter_top_value = 0xFFFF;
+constexpr std::uint32_t expected_core_clock_hz = 8000000;
 
 FrequencyMeter& FrequencyMeter::instance()
 {
@@ -25,60 +24,46 @@ FrequencyMeter& FrequencyMeter::instance()
 FrequencyMeter::FrequencyMeter()
 {
     RCC->APBENR2 |= RCC_APBENR2_TIM1EN;
+    RCC->APBENR2 |= RCC_APBENR2_TIM17EN;
     RCC->IOPENR |= RCC_IOPENR_GPIOAEN;
-    RCC->AHBENR |= RCC_AHBENR_DMA1EN;
     // LOLLIPOP-FM rev. 1.0 board
-    // PA0 AF5 TIM1_CH1
-    GPIOA->MODER &= ~GPIO_MODER_MODE0;
-    GPIOA->MODER |= GPIO_MODER_MODE0_1;
-    GPIOA->AFR[0] &= ~GPIO_AFRL_AFSEL0;
-    GPIOA->AFR[0] |= (5U << GPIO_AFRL_AFSEL0_Pos);
-    // TIM1 Channel 1 input capture
+    // PA12 AF2 TIM1_ETR
+    GPIOA->MODER &= ~GPIO_MODER_MODE12;
+    GPIOA->MODER |= GPIO_MODER_MODE12_1;
+    GPIOA->AFR[1] &= ~GPIO_AFRH_AFSEL12;
+    GPIOA->AFR[1] |= (2U << GPIO_AFRH_AFSEL12_Pos);
+    // TIM1 External trigger input
     TIM1->PSC = 0;
-    TIM1->ARR = counter_top_value;
-    TIM1->CCMR1 |= TIM_CCMR1_CC1S_0;
-    TIM1->CCER |= TIM_CCER_CC1E;
-    TIM1->DIER |= TIM_DIER_CC1DE;
-    // DMA , channel 1, connected to TIM1 Channel 1
-    DMA1_Channel1->CCR &= ~DMA_CCR_EN;
-    DMAMUX1_Channel0->CCR = (tim1_channel1_id << DMAMUX_CxCR_DMAREQ_ID_Pos);
-    DMA1_Channel1->CPAR = (uint32_t)&TIM1->CCR1;
-    DMA1_Channel1->CMAR = (uint32_t)buffer;
-    DMA1_Channel1->CNDTR = timer_num_of_samples;
-    DMA1_Channel1->CCR = DMA_CCR_MSIZE_0 | DMA_CCR_PSIZE_0 | DMA_CCR_CIRC | DMA_CCR_TCIE | DMA_CCR_MINC;
-    NVIC_EnableIRQ(DMA1_Channel1_IRQn);
+    TIM1->SMCR &= ~TIM_SMCR_ETF;
+    TIM1->SMCR &= ~TIM_SMCR_ETPS;
+    TIM1->SMCR &= ~TIM_SMCR_ETP;
+    TIM1->SMCR |= TIM_SMCR_ECE;
+    // TIM17 general 1 ms counter with interrupt
+    TIM17->PSC = (expected_core_clock_hz / 1000) - 1;
+    TIM17->ARR = cfg::update_rate_ms - 1;
+    TIM17->CNT = 0;
+    TIM17->EGR = TIM_EGR_UG;
+    TIM17->DIER |= TIM_DIER_UIE;
+    NVIC_EnableIRQ(TIM17_IRQn);
 }
 
 void FrequencyMeter::start()
 {
-    DMA1_Channel1->CCR |= DMA_CCR_EN;
     TIM1->CNT = 0;
-    TIM1->CR1 |= TIM_CR1_CEN;
+    TIM17->CNT = 0;
+    TIM17->CR1 |= TIM_CR1_CEN;
 }
 
-void FrequencyMeter::stop()
-{
-    TIM1->CR1 &= ~TIM_CR1_CEN;
-    TIM1->CNT = 0;
-    DMA1_Channel1->CCR &= ~DMA_CCR_EN;
-}
+void FrequencyMeter::stop() { TIM17->CR1 &= ~TIM_CR1_CEN; }
 
 void FrequencyMeter::irq(void)
 {
-    if (DMA1->ISR & DMA_ISR_TCIF1)
+    if (TIM17->SR & TIM_SR_UIF)
     {
-        DMA1->IFCR = DMA_IFCR_CTCIF1;
-        if (buffer[3] >= buffer[2])
-        {
-            result = buffer[3] - buffer[2];
-        }
-        else
-        {
-            result = (counter_top_value + 1) - buffer[2] + buffer[3];
-        }
+        TIM17->SR &= ~TIM_SR_UIF;
     }
 }
 
 } // namespace fm
 
-extern "C" void DMA1_Channel1_IRQHandler(void) { fm::FrequencyMeter::instance().irq(); }
+extern "C" void TIM17_IRQHandler(void) { fm::FrequencyMeter::instance().irq(); }

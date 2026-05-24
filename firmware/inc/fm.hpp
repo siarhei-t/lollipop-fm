@@ -12,8 +12,6 @@
 namespace fm
 {
 
-constexpr std::uint32_t timer_num_of_samples = 4;
-
 class FrequencyMeter
 {
 public:
@@ -27,7 +25,6 @@ private:
     FrequencyMeter();
     FrequencyMeter(const FrequencyMeter&) = delete;
     FrequencyMeter& operator=(const FrequencyMeter&) = delete;
-    std::uint16_t buffer[timer_num_of_samples];
     volatile std::uint32_t result = 0;
 };
 
