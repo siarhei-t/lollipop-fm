@@ -63,7 +63,6 @@ Buzzer& Buzzer::instance()
 
 Buzzer::Buzzer()
 {
-
     RCC->IOPENR |= RCC_IOPENR_GPIOAEN;
     RCC->APBENR2 |= RCC_APBENR2_TIM16EN;
     // LOLLIPOP-FM rev. 1.0 board
@@ -136,7 +135,6 @@ void Buzzer::buzzerTask(void* pvParameters)
         if (sound.melody == nullptr)
         {
             instance().stop();
-            vTaskDelay(pdMS_TO_TICKS(cfg::update_rate_ms));
             continue;
         }
         const Tone* melody = sound.melody;
