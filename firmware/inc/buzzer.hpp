@@ -9,7 +9,6 @@
 #define BUZZER_H
 
 #include "FreeRTOS.h"
-#include "FreeRTOSConfig.h"
 #include "queue.h"
 #include "task.h"
 #include <cstdint>
@@ -79,6 +78,7 @@ private:
     void stop();
     void setFrequency(const std::uint16_t frequency_hz);
     std::uint16_t frequency_hz = 0;
+    // FreeRTOS static task and queue variables
     QueueHandle_t queue;
     StackType_t stack[stack_size];
     StaticTask_t task_buffer;

@@ -9,7 +9,7 @@
 #include "app.hpp"
 #include "buzzer.hpp"
 #include "config.hpp"
-#include "frequency_meter.hpp"
+#include "fm.hpp"
 #include "io.hpp"
 #include "led.hpp"
 #include "serial.hpp"
@@ -64,8 +64,9 @@ void Application::start()
     // create and start led task control
     led.init();
     // create and start buzzer task control
-    bz.init();
+    // bz.init();
     // enable oscillator
+    io.oscSetState(true);
     fm.start();
 }
 
@@ -108,8 +109,8 @@ void Application::appTask(void* pvParameters)
             else
             {
                 deviation_counter = 0;
-                led.setBlinkMode(led::Blink::off);
-                bz.stopPlaying();
+                led.setBlinkMode(led::Blink::Off);
+                // bz.stopPlaying();
                 break;
             }
             if (deviation_counter > cfg::num_of_deviations)
@@ -118,14 +119,14 @@ void Application::appTask(void* pvParameters)
                 if (captured_value < reference)
                 {
                     // non ferrite metal
-                    led.setBlinkMode(led::Blink::yellow);
-                    bz.playFerrite();
+                    led.setBlinkMode(led::Blink::NoneFerrite);
+                    // bz.playFerrite();
                 }
                 else
                 {
                     // ferrite metal
-                    led.setBlinkMode(led::Blink::yellow);
-                    bz.playNoneFerrite();
+                    led.setBlinkMode(led::Blink::Ferrite);
+                    // bz.playNoneFerrite();
                 }
             }
         } while (0);
