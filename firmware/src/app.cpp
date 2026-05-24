@@ -14,6 +14,7 @@
 #include "led.hpp"
 #include "serial.hpp"
 #include <cstdint>
+#include <utility>
 
 namespace app
 {
@@ -38,8 +39,7 @@ static inline std::uint32_t local_fabs(const std::uint32_t a, const std::uint32_
 
 static inline std::uint32_t calibration()
 {
-    std::uint32_t cap = 0;
-    std::uint32_t reference = 0;
+    static std::uint32_t samples[cfg::initial_num_of_samples];
 
     for (int i = 0; i < cfg::initial_num_of_samples; ++i)
     {
@@ -47,12 +47,28 @@ static inline std::uint32_t calibration()
         {
             vTaskDelay(pdMS_TO_TICKS(1));
         } while (!fm.isReady());
-        cap += fm.getValue();
+        samples[i] = fm.getValue();
         uint32_t progress = (i * 100) / cfg::initial_num_of_samples;
         sp.print(" progress : %d %%\r", progress);
     }
-    reference = cap / cfg::initial_num_of_samples;
-    return reference;
+    // bubble sort
+    for (int i = 0; i < cfg::initial_num_of_samples - 1; i++)
+    {
+        for (int j = 0; j < cfg::initial_num_of_samples - i - 1; j++)
+        {
+            if (samples[j] > samples[j + 1])
+            {
+                std::swap(samples[j], samples[j + 1]);
+            }
+        }
+    }
+    uint32_t cap = 0;
+    // trim 10%
+    for (int i = cfg::calibration_trim_samples; i < cfg::initial_num_of_samples - cfg::calibration_trim_samples; ++i)
+    {
+        cap += samples[i];
+    }
+    return cap / (cfg::initial_num_of_samples - (cfg::calibration_trim_samples * 2));
 }
 
 Application& Application::instance()
@@ -113,7 +129,10 @@ void Application::appTask(void* pvParameters)
         {
             continue;
         }
-
+        do
+        {
+            vTaskDelay(pdMS_TO_TICKS(1));
+        } while (!fm.isReady());
         captured_value = fm.getValue();
         deviation = local_fabs(reference, captured_value);
         if ((tick_counter % cfg::log_timeout) == 0)
