@@ -42,24 +42,33 @@ FrequencyMeter::FrequencyMeter()
     TIM17->PSC = (expected_core_clock_hz / 1000) - 1;
     TIM17->ARR = cfg::update_rate_ms - 1;
     TIM17->CNT = 0;
-    TIM17->EGR = TIM_EGR_UG;
+    TIM17->EGR |= TIM_EGR_UG;
     TIM17->DIER |= TIM_DIER_UIE;
-    NVIC_EnableIRQ(TIM17_IRQn);
 }
 
 void FrequencyMeter::start()
 {
+    NVIC_EnableIRQ(TIM17_IRQn);
     TIM1->CNT = 0;
     TIM17->CNT = 0;
     TIM17->CR1 |= TIM_CR1_CEN;
+    TIM1->CR1 |= TIM_CR1_CEN;
 }
 
-void FrequencyMeter::stop() { TIM17->CR1 &= ~TIM_CR1_CEN; }
+void FrequencyMeter::stop()
+{
+    TIM17->CR1 &= ~TIM_CR1_CEN;
+    TIM1->CR1 &= ~TIM_CR1_CEN;
+    NVIC_DisableIRQ(TIM17_IRQn);
+}
 
 void FrequencyMeter::irq(void)
 {
     if (TIM17->SR & TIM_SR_UIF)
     {
+        ready = true;
+        result = TIM1->CNT;
+        TIM1->CNT = 0;
         TIM17->SR &= ~TIM_SR_UIF;
     }
 }

@@ -18,13 +18,19 @@ public:
     static FrequencyMeter& instance();
     void start();
     void stop();
-    std::uint32_t getValue() const { return result; }
+    bool isReady() const { return ready; }
+    std::uint32_t getValue()
+    {
+        ready = false;
+        return result;
+    }
     void irq();
 
 private:
     FrequencyMeter();
     FrequencyMeter(const FrequencyMeter&) = delete;
     FrequencyMeter& operator=(const FrequencyMeter&) = delete;
+    bool ready;
     volatile std::uint32_t result = 0;
 };
 

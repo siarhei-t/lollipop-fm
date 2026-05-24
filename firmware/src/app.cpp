@@ -43,9 +43,13 @@ static inline std::uint32_t calibration()
 
     for (int i = 0; i < cfg::initial_num_of_samples; ++i)
     {
+        do
+        {
+            vTaskDelay(pdMS_TO_TICKS(1));
+        } while (!fm.isReady());
         cap += fm.getValue();
-        sp.print("cap = %d\n", cap);
-        vTaskDelay(pdMS_TO_TICKS(cfg::update_rate_ms));
+        uint32_t progress = (i * 100) / cfg::initial_num_of_samples;
+        sp.print(" progress : %d %%\r", progress);
     }
     reference = cap / cfg::initial_num_of_samples;
     return reference;
@@ -60,14 +64,14 @@ Application& Application::instance()
 void Application::start()
 {
     // create main task
-    // task_handle = xTaskCreateStatic(&Application::appTask, "app", stack_size, nullptr, task_priority, stack, &task_buffer);
+    task_handle = xTaskCreateStatic(&Application::appTask, "app", stack_size, nullptr, task_priority, stack, &task_buffer);
     // create and start led task control
     led.init();
     // create and start buzzer task control
-    // bz.init();
+    bz.init();
     // enable oscillator
     io.oscSetState(true);
-    // fm.start();
+    fm.start();
 }
 
 void Application::appTask(void* pvParameters)
@@ -80,17 +84,34 @@ void Application::appTask(void* pvParameters)
     static uint32_t captured_value = 0;
     static uint32_t deviation_counter = 0;
 
+    sp.print("*****************************\n");
+    for (int i = 0; i < 2; ++i)
+    {
+        sp.print(".\n");
+    }
+    sp.print("Lollipop-FM firmware started.\n");
+    sp.print("version : %s \n", fw_version);
+    for (int i = 0; i < 2; ++i)
+    {
+        sp.print(".\n");
+    }
+    sp.print("*****************************\n");
     for (;;)
     {
         ++tick_counter;
 
-        if (!calibrated || io.checkButtonEvent())
+        if (io.checkButtonEvent())
         {
             sp.print("calibration...\n");
             reference = calibration();
             calibrated = true;
             sp.print("calibration done!\n");
             sp.print("reference = %d\n", reference);
+        }
+
+        if (!calibrated)
+        {
+            continue;
         }
 
         captured_value = fm.getValue();
@@ -100,6 +121,7 @@ void Application::appTask(void* pvParameters)
             sp.print("captured value : %d, deviation : %d \n", captured_value, deviation);
         }
         // logic for deviation
+
         do
         {
             if (deviation > cfg::allowable_deviation)
@@ -110,7 +132,7 @@ void Application::appTask(void* pvParameters)
             {
                 deviation_counter = 0;
                 led.setBlinkMode(led::Blink::Off);
-                // bz.stopPlaying();
+                bz.stopPlaying();
                 break;
             }
             if (deviation_counter > cfg::num_of_deviations)
@@ -120,17 +142,16 @@ void Application::appTask(void* pvParameters)
                 {
                     // non ferrite metal
                     led.setBlinkMode(led::Blink::NoneFerrite);
-                    // bz.playFerrite();
+                    bz.playFerrite();
                 }
                 else
                 {
                     // ferrite metal
                     led.setBlinkMode(led::Blink::Ferrite);
-                    // bz.playNoneFerrite();
+                    bz.playNoneFerrite();
                 }
             }
         } while (0);
-
         vTaskDelay(pdMS_TO_TICKS(cfg::update_rate_ms));
     }
 }

@@ -16,6 +16,7 @@ namespace app
 
 constexpr int task_priority = configMAX_PRIORITIES - 3;
 constexpr int stack_size = 512;
+constexpr char fw_version[] = "0.01a";
 
 class Application
 {
