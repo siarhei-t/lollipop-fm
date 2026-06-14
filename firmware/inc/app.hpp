@@ -10,6 +10,7 @@
 
 #include "FreeRTOS.h"
 #include "task.h"
+#include <cstdint>
 
 namespace app
 {
@@ -17,6 +18,13 @@ namespace app
 constexpr int task_priority = configMAX_PRIORITIES - 3;
 constexpr int stack_size = 512;
 constexpr char fw_version[] = "0.01a";
+
+struct StateEMA
+{
+    std::int32_t reference = 0;
+    std::uint32_t drift_counter;
+    uint8_t detect_counter = 0;
+};
 
 class Application
 {

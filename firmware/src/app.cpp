@@ -13,7 +13,6 @@
 #include "io.hpp"
 #include "led.hpp"
 #include "serial.hpp"
-#include <cstdint>
 #include <utility>
 
 namespace app
@@ -25,19 +24,51 @@ fm::FrequencyMeter& fm = fm::FrequencyMeter::instance();
 io::DevicePorts& io = io::DevicePorts::instance();
 bz::Buzzer& bz = bz::Buzzer::instance();
 
-static inline std::uint32_t local_fabs(const std::uint32_t a, const std::uint32_t b)
+StateEMA state_ema;
+
+static inline void print_hello()
 {
-    if (a >= b)
+    sp.print("*****************************\n");
+    for (int i = 0; i < 2; ++i)
     {
-        return a - b;
+        sp.print(".\n");
+    }
+    sp.print("Lollipop-FM firmware started.\n");
+    sp.print("version : %s \n", fw_version);
+    for (int i = 0; i < 2; ++i)
+    {
+        sp.print(".\n");
+    }
+    sp.print("*****************************\n");
+}
+static inline void on_detect(const int32_t deviation)
+{
+    sp.print("deviation : %d , reference: %d \n", deviation, state_ema.reference);
+    if (deviation > 0)
+    {
+        led.setBlinkMode(led::Blink::NoneFerrite);
+        bz.playNoneFerrite();
     }
     else
     {
-        return b - a;
+        led.setBlinkMode(led::Blink::Ferrite);
+        bz.playFerrite();
     }
 }
 
-static inline std::uint32_t calibration()
+static inline void on_clear()
+{
+    led.setBlinkMode(led::Blink::Off);
+    bz.stopPlaying();
+}
+
+static inline void reset_ema(const int32_t value)
+{
+    state_ema.reference = value;
+    state_ema.detect_counter = 0;
+}
+
+static inline std::int32_t calibration()
 {
     static std::uint32_t samples[cfg::initial_num_of_samples];
 
@@ -51,7 +82,6 @@ static inline std::uint32_t calibration()
         uint32_t progress = (i * 100) / cfg::initial_num_of_samples;
         sp.print(" progress : %d %%\r", progress);
     }
-    // bubble sort
     for (int i = 0; i < cfg::initial_num_of_samples - 1; i++)
     {
         for (int j = 0; j < cfg::initial_num_of_samples - i - 1; j++)
@@ -69,6 +99,53 @@ static inline std::uint32_t calibration()
         cap += samples[i];
     }
     return cap / (cfg::initial_num_of_samples - (cfg::calibration_trim_samples * 2));
+}
+
+static inline void sample(const int32_t captured_value)
+{
+    int32_t deviation = captured_value - state_ema.reference;
+    int32_t abs_dev = deviation >= 0 ? deviation : -deviation;
+
+    if (abs_dev > cfg::allowable_deviation)
+    {
+        state_ema.drift_counter = 0;
+        if (state_ema.detect_counter < 255)
+            ++state_ema.detect_counter;
+    }
+    else
+    {
+        ++state_ema.drift_counter;
+        state_ema.detect_counter = 0;
+    }
+
+    if (state_ema.detect_counter >= cfg::num_of_deviations)
+    {
+        on_detect(deviation);
+    }
+    else
+    {
+        on_clear();
+    }
+
+    if (state_ema.drift_counter > cfg::drift_limit)
+    {
+        bool updated = false;
+        state_ema.drift_counter = 0;
+        if (captured_value > state_ema.reference)
+        {
+            ++state_ema.reference;
+            updated = true;
+        }
+        else if (captured_value < state_ema.reference)
+        {
+            --state_ema.reference;
+            updated = true;
+        }
+        if (updated)
+        {
+            sp.print("reference updated! New value : %d \n", state_ema.reference);
+        }
+    }
 }
 
 Application& Application::instance()
@@ -94,37 +171,17 @@ void Application::appTask(void* pvParameters)
 {
     (void)(pvParameters);
     static bool calibrated = false;
-    static uint32_t tick_counter = 0;
-    static uint32_t reference = 0;
-    static uint32_t deviation = 0;
-    static uint32_t captured_value = 0;
-    static uint32_t deviation_counter = 0;
-
-    sp.print("*****************************\n");
-    for (int i = 0; i < 2; ++i)
-    {
-        sp.print(".\n");
-    }
-    sp.print("Lollipop-FM firmware started.\n");
-    sp.print("version : %s \n", fw_version);
-    for (int i = 0; i < 2; ++i)
-    {
-        sp.print(".\n");
-    }
-    sp.print("*****************************\n");
+    print_hello();
     for (;;)
     {
-        ++tick_counter;
-
         if (io.checkButtonEvent())
         {
             sp.print("calibration...\n");
-            reference = calibration();
+            std::uint32_t reference = calibration();
+            reset_ema(reference);
             calibrated = true;
             sp.print("calibration done, reference : %d , allowable deviation : %d \n", reference, cfg::allowable_deviation);
-            sp.print("reference = %d\n", reference);
         }
-
         if (!calibrated)
         {
             continue;
@@ -133,43 +190,9 @@ void Application::appTask(void* pvParameters)
         {
             vTaskDelay(pdMS_TO_TICKS(1));
         } while (!fm.isReady());
-        captured_value = fm.getValue();
-        deviation = local_fabs(reference, captured_value);
-        if ((tick_counter % cfg::log_timeout) == 0)
-        {
-            sp.print("captured value : %d, deviation : %d \n", captured_value, deviation);
-        }
-        do
-        {
-            if (deviation > cfg::allowable_deviation)
-            {
-                ++deviation_counter;
-            }
-            else
-            {
-                deviation_counter = 0;
-                led.setBlinkMode(led::Blink::Off);
-                bz.stopPlaying();
-                break;
-            }
-            if (deviation_counter > cfg::num_of_deviations)
-            {
-                // looks like we have something
-                if (captured_value > reference)
-                {
-                    // non ferrite metal
-                    led.setBlinkMode(led::Blink::NoneFerrite);
-                    bz.playNoneFerrite();
-                }
-                else
-                {
-                    // ferrite metal
-                    led.setBlinkMode(led::Blink::Ferrite);
-                    bz.playFerrite();
-                }
-            }
-        } while (0);
-        vTaskDelay(pdMS_TO_TICKS(cfg::update_rate_ms));
+        std::uint32_t captured_value = fm.getValue();
+        sample(captured_value);
+        vTaskDelay(pdMS_TO_TICKS(cfg::main_task_delay));
     }
 }
 
