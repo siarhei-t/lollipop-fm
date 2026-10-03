@@ -65,6 +65,8 @@ class Buzzer
 public:
     static Buzzer& instance();
     void init();
+    void playPowerOn();
+    void playCalibrationDone();
     void playFerrite();
     void playNoneFerrite();
     void stopPlaying();

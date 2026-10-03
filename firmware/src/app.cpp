@@ -165,6 +165,7 @@ void Application::start()
     // enable oscillator
     io.oscSetState(true);
     fm.start();
+    bz.playPowerOn();
 }
 
 void Application::appTask(void* pvParameters)
@@ -174,12 +175,13 @@ void Application::appTask(void* pvParameters)
     print_hello();
     for (;;)
     {
-        if (io.checkButtonEvent())
+        if (io.checkButtonEvent() || !calibrated)
         {
             sp.print("calibration...\n");
             std::uint32_t reference = calibration();
             reset_ema(reference);
             calibrated = true;
+            bz.playCalibrationDone();
             sp.print("calibration done, reference : %d , allowable deviation : %d \n", reference, cfg::allowable_deviation);
         }
         if (!calibrated)

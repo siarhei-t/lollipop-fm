@@ -11,9 +11,10 @@
 
 namespace bz
 {
-
-constexpr Tone ferrite[] = {{Note::F7, 200}, {Note::None, 200}};
-constexpr Tone non_ferrite[] = {{Note::G7, 100}, {Note::None, 100}};
+constexpr Tone ferrite[] = {{Note::C6, 25}, {Note::None, 15}};
+constexpr Tone non_ferrite[] = {{Note::A7, 70}, {Note::None, 30}};
+constexpr Tone power_on[] = {{Note::C6, 80}, {Note::E6, 80}, {Note::G6, 80}, {Note::C7, 160}};
+constexpr Tone calibration_done[] = {{Note::E7, 60}, {Note::None, 40}, {Note::A7, 140}};
 
 constexpr std::uint16_t getFrequency(Note n)
 {
@@ -79,6 +80,18 @@ Buzzer::Buzzer()
     TIM16->CR1 |= TIM_CR1_ARPE;
     TIM16->EGR = TIM_EGR_UG;
     TIM16->BDTR |= TIM_BDTR_MOE;
+}
+
+void Buzzer::playPowerOn()
+{
+    static const Sound sound = Sound(PlayType::Once, power_on, sizeof(power_on) / sizeof(Tone));
+    xQueueSend(queue, &sound, 0);
+}
+
+void Buzzer::playCalibrationDone()
+{
+    static const Sound sound = Sound(PlayType::Once, calibration_done, sizeof(calibration_done) / sizeof(Tone));
+    xQueueSend(queue, &sound, 0);
 }
 
 void Buzzer::playFerrite()
