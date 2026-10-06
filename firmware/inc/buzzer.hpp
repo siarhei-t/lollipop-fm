@@ -66,6 +66,8 @@ public:
     static Buzzer& instance();
     void init();
     void playPowerOn();
+    void playError();
+    void playLowBattery();
     void playCalibrationDone();
     void playFerrite();
     void playNoneFerrite();

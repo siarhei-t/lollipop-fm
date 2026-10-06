@@ -15,6 +15,8 @@ constexpr Tone ferrite[] = {{Note::C6, 25}, {Note::None, 15}};
 constexpr Tone non_ferrite[] = {{Note::A7, 70}, {Note::None, 30}};
 constexpr Tone power_on[] = {{Note::C6, 80}, {Note::E6, 80}, {Note::G6, 80}, {Note::C7, 160}};
 constexpr Tone calibration_done[] = {{Note::E7, 60}, {Note::None, 40}, {Note::A7, 140}};
+constexpr Tone error[] = {{Note::E6, 150}, {Note::None, 50}, {Note::C6, 400}};
+constexpr Tone low_battery[] = {{Note::A6, 100}, {Note::F6, 250}, {Note::None, 150}, {Note::A6, 100}, {Note::F6, 250}};
 
 constexpr std::uint16_t getFrequency(Note n)
 {
@@ -91,6 +93,18 @@ void Buzzer::playPowerOn()
 void Buzzer::playCalibrationDone()
 {
     static const Sound sound = Sound(PlayType::Once, calibration_done, sizeof(calibration_done) / sizeof(Tone));
+    xQueueSend(queue, &sound, 0);
+}
+
+void Buzzer::playError()
+{
+    static const Sound sound = Sound(PlayType::Once, error, sizeof(error) / sizeof(Tone));
+    xQueueSend(queue, &sound, 0);
+}
+
+void Buzzer::playLowBattery()
+{
+    static const Sound sound = Sound(PlayType::Once, low_battery, sizeof(low_battery) / sizeof(Tone));
     xQueueSend(queue, &sound, 0);
 }
 
