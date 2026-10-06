@@ -1,7 +1,7 @@
 /**
  * @file config.hpp
  *
- * @brief
+ * @brief device constants and configurations
  *
  */
 

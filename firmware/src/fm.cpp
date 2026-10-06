@@ -12,9 +12,6 @@
 namespace fm
 {
 
-// top value for TIM ARR register
-constexpr std::uint32_t expected_core_clock_hz = 8000000;
-
 FrequencyMeter& FrequencyMeter::instance()
 {
     static FrequencyMeter fm;
@@ -30,16 +27,16 @@ FrequencyMeter::FrequencyMeter()
     GPIOA->MODER = (GPIOA->MODER & ~GPIO_MODER_MODE0) | GPIO_MODER_MODE0_1;
     GPIOA->AFR[0] = (GPIOA->AFR[0] & ~GPIO_AFRL_AFSEL0) | (5U << GPIO_AFRL_AFSEL0_Pos);
 
-    // TIM1 свободно считает такты кварца: 0..0xFFFF по кругу
+    // TIM1 without prescaler, max count limiter
     TIM1->PSC = 0;
     TIM1->ARR = 0xFFFF;
 
-    // CH1 — захват: CC1S=01 (вход TI1), IC1PSC=11 (каждый 8-й фронт)
-    // CH2 — сравнение без вывода на ножку, сторож таймаута
-    TIM1->CCMR1 = (1U << TIM_CCMR1_CC1S_Pos) | (3U << TIM_CCMR1_IC1PSC_Pos);
-    // Опционально, цифровой фильтр от помех: | (3U << TIM_CCMR1_IC1F_Pos)
+    // CH1 — capture mode: CC1S=01 ( input TI1), IC1PSC=11 (every 8 front)
+    // CH2 — pulse WDT, interrupt in case of out of range frequency
 
-    TIM1->CCER = TIM_CCER_CC1E; // передний фронт
+    TIM1->CCMR1 = (1U << TIM_CCMR1_CC1S_Pos) | (3U << TIM_CCMR1_IC1PSC_Pos);
+
+    TIM1->CCER = TIM_CCER_CC1E; // rising edge
     TIM1->EGR = TIM_EGR_UG;
     TIM1->SR = 0;
     TIM1->DIER = TIM_DIER_CC1IE | TIM_DIER_CC2IE;
@@ -47,9 +44,11 @@ FrequencyMeter::FrequencyMeter()
 
 void FrequencyMeter::setPeriods(std::uint16_t periods)
 {
-    periods &= ~(cfg::edges_per_capture - 1); // округление вниз до кратного 8
-    if (periods >= cfg::periods_min && periods <= cfg::periods_max)
+    periods &= ~(cfg::edges_per_capture - 1); // round to 8
+    if ((periods >= cfg::periods_min) && (periods <= cfg::periods_max))
+    {
         new_periods = periods;
+    }
 }
 
 void FrequencyMeter::start()
@@ -62,7 +61,7 @@ void FrequencyMeter::start()
     startWindow();
 
     TIM1->CNT = 0;
-    TIM1->CCR2 = cfg::timeout_ticks; // первая проверка таймаута
+    TIM1->CCR2 = cfg::timeout_ticks;
     TIM1->SR = 0;
     TIM1->CR1 |= TIM_CR1_CEN;
     NVIC_EnableIRQ(TIM1_CC_IRQn);
@@ -90,7 +89,6 @@ void FrequencyMeter::irq()
 {
     const std::uint32_t sr = TIM1->SR;
 
-    // Перезахват: отметка потеряна -> окно начинаем заново с текущего захвата
     if (sr & TIM_SR_CC1OF)
     {
         TIM1->SR = ~TIM_SR_CC1OF;
@@ -98,12 +96,15 @@ void FrequencyMeter::irq()
     }
 
     if (sr & TIM_SR_CC1IF)
-        onCapture(TIM1->CCR1); // чтение CCR1 сбрасывает CC1IF
+    {
+        onCapture(TIM1->CCR1); // reading of CCR1 reset CC1IF flag
+    }
     else if (sr & TIM_SR_CC2IF)
+    {
         onTimeout();
+    }
 }
 
-// Новое окно; здесь же применяется размер, запрошенный через setPeriods()
 void FrequencyMeter::startWindow()
 {
     if (new_periods != 0)
@@ -118,22 +119,24 @@ void FrequencyMeter::startWindow()
 
 void FrequencyMeter::onCapture(std::uint16_t t)
 {
-    // Перезаводим сторож: следующий захват ждём не дольше timeout_ticks
+    // WDT reload
     TIM1->CCR2 = static_cast<std::uint16_t>(t + cfg::timeout_ticks);
     TIM1->SR = ~TIM_SR_CC2IF;
 
-    const std::uint16_t delta = t - last_capture; // корректно через переполнение 0xFFFF -> 0
+    const std::uint16_t delta = t - last_capture;
     const bool valid = have_last && delta < cfg::timeout_ticks;
 
     if (have_last && !valid)
-        publish(0); // пауза длиннее таймаута — сбой сигнала
+    {
+        publish(0); // timeout
+    }
 
     last_capture = t;
     have_last = true;
 
     if (!valid)
     {
-        startWindow(); // этот фронт — начало нового окна
+        startWindow();
         return;
     }
 
@@ -141,13 +144,13 @@ void FrequencyMeter::onCapture(std::uint16_t t)
     if (--captures_left == 0)
     {
         publish(win_ticks);
-        startWindow(); // этот же фронт — начало следующего окна
+        startWindow();
     }
 }
 
 void FrequencyMeter::onTimeout()
 {
-    // За timeout_ticks не было захвата: сигнала нет
+    // reload timeout
     TIM1->CCR2 = static_cast<std::uint16_t>(TIM1->CCR2 + cfg::timeout_ticks);
     TIM1->SR = ~TIM_SR_CC2IF;
     have_last = false;
@@ -156,13 +159,14 @@ void FrequencyMeter::onTimeout()
 
 void FrequencyMeter::publish(std::uint32_t ticks)
 {
-    // f = periods * f_timer / ticks. Допуск без деления:
+    // f = periods * f_timer / ticks
     // min_hz <= f <= max_hz  <=>  min_hz*ticks <= periods*f_timer <= max_hz*ticks
-    const bool bad = ticks == 0 || window_scaled < std::uint64_t(cfg::min_hz) * ticks || window_scaled > std::uint64_t(cfg::max_hz) * ticks;
+    const bool bad = (ticks == 0) || (window_scaled < (std::uint64_t(cfg::min_hz) * ticks)) || (window_scaled > (std::uint64_t(cfg::max_hz) * ticks));
 
-    // Антидребезг: состояние меняется после fault_debounce противоречащих окон подряд
     if (bad == res_fault)
+    {
         streak = 0;
+    }
     else if (++streak >= cfg::fault_debounce)
     {
         res_fault = bad;
@@ -176,4 +180,4 @@ void FrequencyMeter::publish(std::uint32_t ticks)
 
 } // namespace fm
 
-extern "C" void TIM17_IRQHandler(void) { fm::FrequencyMeter::instance().irq(); }
+extern "C" void TIM1_CC_IRQHandler(void) { fm::FrequencyMeter::instance().irq(); }
