@@ -29,7 +29,7 @@ constexpr std::uint32_t edges_per_capture = 1U << capture_shift;
 constexpr std::uint16_t timeout_ticks = 0x8000;
 
 constexpr int main_task_delay = 1;          // controller main task delay
-constexpr int drift_limit = 200;            // frequency drift max value for drift counter
+constexpr int drift_limit = 2000;           // frequency drift max value for drift counter
 constexpr int initial_num_of_samples = 50;  // the number of frequency meter measurements to obtain the average value during calibration
 constexpr int calibration_trim_samples = 5; // the number of max and min values removed from the calibration array
 constexpr int allowable_deviation = 2;      // maximum permitted deviation in absolute values of the timer counter

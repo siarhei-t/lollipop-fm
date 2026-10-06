@@ -41,10 +41,11 @@ static inline void print_hello()
     }
     sp.print("*****************************\n");
 }
+
 static inline void on_detect(const int32_t deviation)
 {
     sp.print("deviation : %d , reference: %d \n", deviation, state_ema.reference);
-    if (deviation > 0)
+    if (deviation < 0)
     {
         led.setBlinkMode(led::Blink::NoneFerrite);
         bz.playNoneFerrite();
